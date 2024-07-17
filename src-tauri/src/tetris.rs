@@ -31,6 +31,7 @@ impl Counter {
 
 // Declare a shared counter struct to use the state of the counter
 // Arc Mutex makes it usable in different threads
+#[derive(Clone)]
 pub struct CounterRunner {
     pub counter: Arc<Mutex<Counter>>,
     pub running: Arc<atomic::AtomicBool>
@@ -47,17 +48,16 @@ impl CounterRunner {
         // Set running flag to true
         self.running.store(true, atomic::Ordering::SeqCst);
 
-        // Clone the counter and running flag to move them to the thread
-        let counter = self.counter.clone();
-        let running_flag = self.running.clone();
+        // Clone self to move it to the background thread
+        let self_clone = self.clone();
 
         // Spawn a thread to increment the counter at set intervals
         thread::spawn(move || {
             let mut sleep_time;
 
-            while running_flag.load(atomic::Ordering::SeqCst) {
+            while self_clone.running.load(atomic::Ordering::SeqCst) {
                 {
-                    let mut counter = counter.lock().unwrap();
+                    let mut counter = self_clone.counter.lock().unwrap();
                     counter.increment();
                     sleep_time = 1. / counter.get_count_rate();
                 }

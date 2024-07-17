@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, atomic};
-
+use std::thread;
+use std::time::Duration;
 use crate::emitter::Emitter;
 
 pub struct Counter {
@@ -32,4 +33,35 @@ impl Counter {
 pub struct CounterRunner {
     pub counter: Arc<Mutex<Counter>>,
     pub running: Arc<atomic::AtomicBool>
+}
+
+impl CounterRunner {
+    pub fn run(&self) {
+        // Early return if the counter is already started
+        if self.running.load(atomic::Ordering::SeqCst) {
+            println!("Counter is already running!");
+            return;
+        }
+
+        // Set running flag to true
+        self.running.store(true, atomic::Ordering::SeqCst);
+
+        // Clone the counter and running flag to move them to the thread
+        let counter = self.counter.clone();
+        let running_flag = self.running.clone();
+
+        // Spawn a thread to increment the counter at set intervals
+        thread::spawn(move || {
+            let mut sleep_time;
+
+            while running_flag.load(atomic::Ordering::SeqCst) {
+                {
+                    let mut counter = counter.lock().unwrap();
+                    counter.increment();
+                    sleep_time = counter.get_sleep_time();
+                }
+                thread::sleep(Duration::from_secs_f64(sleep_time));
+            }
+        });
+    }
 }

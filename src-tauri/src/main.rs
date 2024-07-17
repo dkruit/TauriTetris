@@ -2,8 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::sync::{Arc, Mutex, atomic};
-use std::thread;
-use std::time::Duration;
 
 use tauri::{State, Manager};
 use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
@@ -32,32 +30,7 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn start_counter(counter_runner: State<CounterRunner>) {
-    // Early return if the counter is already started
-    if counter_runner.running.load(atomic::Ordering::SeqCst) {
-        println!("Counter is already running!");
-        return;
-    }
-
-    // Set running flag to true
-    counter_runner.running.store(true, atomic::Ordering::SeqCst);
-
-    // Clone the counter and running flag to move them to the thread
-    let counter = counter_runner.counter.clone();
-    let running_flag = counter_runner.running.clone();
-
-    // Spawn a thread to increment the counter at set intervals
-    thread::spawn(move || {
-        let mut sleep_time;
-
-        while running_flag.load(atomic::Ordering::SeqCst) {
-            {
-                let mut counter = counter.lock().unwrap();
-                counter.increment();
-                sleep_time = counter.get_sleep_time();
-            }
-            thread::sleep(Duration::from_secs_f64(sleep_time));
-        }
-    });
+    counter_runner.run()
 }
 
 #[tauri::command]

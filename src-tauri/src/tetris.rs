@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex, atomic};
+
 use crate::emitter::Emitter;
 
 pub struct Counter {
@@ -23,4 +25,11 @@ impl Counter {
     pub fn get_sleep_time(&self) -> f64 {
         self.sleep_time
     }
+}
+
+// Declare a shared counter struct to use the state of the counter
+// Arc Mutex makes it usable in different threads
+pub struct CounterRunner {
+    pub counter: Arc<Mutex<Counter>>,
+    pub running: Arc<atomic::AtomicBool>
 }

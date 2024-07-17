@@ -10,7 +10,7 @@ use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
 mod tetris;
 mod emitter;
-use tetris::Counter;
+use tetris::{Counter, CounterRunner};
 use emitter::Emitter;
 
 fn make_menu() -> Menu {
@@ -31,13 +31,13 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn start_counter(shared_counter: State<SharedCounter>) {
+fn start_counter(counter_runner: State<CounterRunner>) {
     // Set running flag to true
-    shared_counter.running.store(true, atomic::Ordering::SeqCst);
+    counter_runner.running.store(true, atomic::Ordering::SeqCst);
 
     // Clone the counter and running flag to move them to the thread
-    let counter = shared_counter.counter.clone();
-    let running_flag = shared_counter.running.clone();
+    let counter = counter_runner.counter.clone();
+    let running_flag = counter_runner.running.clone();
 
     // Spawn a thread to increment the counter at set intervals
     thread::spawn(move || {
@@ -55,23 +55,16 @@ fn start_counter(shared_counter: State<SharedCounter>) {
 }
 
 #[tauri::command]
-fn add_value(value: i32, shared_counter: State<SharedCounter>) {
+fn add_value(value: i32, counter_runner: State<CounterRunner>) {
     // Add a number to the value of the counter.
-    let mut counter = shared_counter.counter.lock().unwrap();
+    let mut counter = counter_runner.counter.lock().unwrap();
     for _i in 0..value { counter.increment(); }
 }
 
 #[tauri::command]
-fn stop_counter(shared_counter: State<SharedCounter>) {
+fn stop_counter(counter_runner: State<CounterRunner>) {
     // Stop the counter by setting the running flag to false
-    shared_counter.running.store(false, atomic::Ordering::SeqCst);
-}
-
-// Declare a shared counter struct to use the state of the counter
-// Arc Mutex makes it usable in different threads
-pub struct SharedCounter {
-    counter: Arc<Mutex<Counter>>,
-    running: Arc<atomic::AtomicBool>
+    counter_runner.running.store(false, atomic::Ordering::SeqCst);
 }
 
 
@@ -82,11 +75,11 @@ fn main() {
             let emitter = Emitter::new(app_handle);
 
             // Create a Counter instance with a sleep time of 1 second
-            let shared_counter = SharedCounter {
+            let counter_runner = CounterRunner {
                 counter: Arc::new(Mutex::new(Counter::new(1.0, emitter))),
                 running: Arc::new(atomic::AtomicBool::new(false))
             };
-            app.manage(shared_counter);
+            app.manage(counter_runner);
 
             Ok(())
         })

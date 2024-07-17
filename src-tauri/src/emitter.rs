@@ -11,7 +11,7 @@ pub struct Emitter {
 
 impl Emitter {
     pub fn new(app_handle: AppHandle) -> Self {
-        Emitter{ app_handle }
+        return Emitter{ app_handle };
     }
 
     pub fn emit(&self, event_name: &str, payload: String) {

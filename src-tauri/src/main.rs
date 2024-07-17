@@ -30,7 +30,7 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn start_counter(counter_runner: State<CounterRunner>) {
-    counter_runner.run()
+    counter_runner.run();
 }
 
 #[tauri::command]
@@ -60,7 +60,7 @@ fn main() {
             };
             app.manage(counter_runner);
 
-            Ok(())
+            return Ok(());
         })
         .menu(make_menu())
         .invoke_handler(tauri::generate_handler![greet, start_counter, stop_counter, add_value])

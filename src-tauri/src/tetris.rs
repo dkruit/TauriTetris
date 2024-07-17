@@ -12,7 +12,7 @@ pub struct Counter {
 
 impl Counter {
     pub fn new(count_rate: f64, emitter: Emitter) -> Self {
-        Counter { value: 0, count_rate, emitter }
+        return Counter { value: 0, count_rate, emitter };
     }
 
     pub fn increment(&mut self) {
@@ -21,11 +21,11 @@ impl Counter {
     }
 
     pub fn get_value(&self) -> i32 {
-        self.value
+        return self.value;
     }
 
     pub fn get_count_rate(&self) -> f64 {
-        self.count_rate
+        return self.count_rate;
     }
 }
 

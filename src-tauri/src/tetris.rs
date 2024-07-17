@@ -1,17 +1,18 @@
 use std::sync::{Arc, Mutex, atomic};
 use std::thread;
 use std::time::Duration;
+
 use crate::emitter::Emitter;
 
 pub struct Counter {
     value: i32,
-    sleep_time: f64, // sleep_time in seconds
+    count_rate: f64, // count_rate in increments per second
     emitter: Emitter
 }
 
 impl Counter {
-    pub fn new(sleep_time: f64, emitter: Emitter) -> Self {
-        Counter { value: 0, sleep_time, emitter }
+    pub fn new(count_rate: f64, emitter: Emitter) -> Self {
+        Counter { value: 0, count_rate, emitter }
     }
 
     pub fn increment(&mut self) {
@@ -23,8 +24,8 @@ impl Counter {
         self.value
     }
 
-    pub fn get_sleep_time(&self) -> f64 {
-        self.sleep_time
+    pub fn get_count_rate(&self) -> f64 {
+        self.count_rate
     }
 }
 
@@ -58,7 +59,7 @@ impl CounterRunner {
                 {
                     let mut counter = counter.lock().unwrap();
                     counter.increment();
-                    sleep_time = counter.get_sleep_time();
+                    sleep_time = 1. / counter.get_count_rate();
                 }
                 thread::sleep(Duration::from_secs_f64(sleep_time));
             }

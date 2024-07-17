@@ -32,6 +32,12 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn start_counter(counter_runner: State<CounterRunner>) {
+    // Early return if the counter is already started
+    if counter_runner.running.load(atomic::Ordering::SeqCst) {
+        println!("Counter is already running!");
+        return;
+    }
+
     // Set running flag to true
     counter_runner.running.store(true, atomic::Ordering::SeqCst);
 

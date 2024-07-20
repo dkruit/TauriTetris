@@ -4,9 +4,9 @@
 use tauri::{State, Manager};
 use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
-mod tetris;
+mod counter;
 mod emitter;
-use tetris::{Counter, CounterRunner};
+use counter::{Counter, CounterRunner};
 use emitter::Emitter;
 
 fn make_menu() -> Menu {

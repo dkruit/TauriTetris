@@ -5,8 +5,8 @@ use std::time::Duration;
 use crate::emitter::Emitter;
 
 const SHAPE_SIZE: usize = 4; // A tetromino fills a SHAPE_SIZE by SHAPE_SIZE grid
-const BOARD_ROWS: usize = 7;
-const BOARD_COLS: usize = 7;
+pub const BOARD_ROWS: usize = 7;
+pub const BOARD_COLS: usize = 7;
 
 const TETROMINO_INITIAL_POS: (i32, i32) = (-1, (BOARD_COLS-SHAPE_SIZE) as i32 / 2);
 
@@ -114,13 +114,35 @@ impl Tetromino {
             .unwrap()
             .clone();
 
+        // Set initial postion
+        let mut pos=  TETROMINO_INITIAL_POS;
+        if shape.name == 'I' {
+            pos = (pos.0-1, pos.1)
+        }
+
         let mut tetromino = Tetromino {
-            pos: (TETROMINO_INITIAL_POS),
+            pos,
             shape,
             occupied_positions: Vec::new()
         };
         tetromino.set_occupied_positions();
         return tetromino;
+    }
+
+    pub fn empty() -> Self {
+        // Creates a placeholder empty tetromino with an empty shape
+        return Tetromino {
+            pos: (0, 0),
+            shape: TetrominoShape {
+                name:'_',
+                orientation: 0,
+                shape: [
+                    [0,0,0,0],
+                    [0,1,1,0],
+                    [0,0,1,1],
+                    [0,0,0,0]] },
+            occupied_positions: Vec::new()
+        };
     }
 
     pub fn get_shape_name(&self) -> char {
@@ -157,6 +179,14 @@ impl Tetromino {
     }
 }
 
+enum MoveNotAllowedError {
+    TooFarLeft,
+    TooFarRight,
+    TooFarDown,
+    TooFarUp,
+    OverlapsWithOccupied,
+}
+
 pub struct Game {
     board: [[char; BOARD_COLS]; BOARD_ROWS],
     current_tetromino: Tetromino,
@@ -185,12 +215,75 @@ impl Game {
         return 1.5 * (self. level as f64);
     }
 
-    pub fn tick(&mut self) {
-        self.current_tetromino.move_pos((1, 0));
-        let result = format!("{:?} {}",
-                             self.current_tetromino.occupied_positions,
-                             self.current_tetromino.shape.name);
+    fn try_move(&mut self, step: (i32, i32)) -> Result<(), MoveNotAllowedError> {
+        for occupied_pos in &self.current_tetromino.occupied_positions {
+            let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
+
+            if pos_after_move.0 < 0 {
+                return Err(MoveNotAllowedError::TooFarUp)
+            }
+            else if pos_after_move.1 < 0 {
+                return Err(MoveNotAllowedError::TooFarLeft)
+            }
+            else if pos_after_move.0 >= BOARD_COLS  as i32 {
+                return Err(MoveNotAllowedError::TooFarRight)
+            }
+            else if pos_after_move.0 >= BOARD_ROWS as i32 {
+                return Err(MoveNotAllowedError::TooFarDown)
+            }
+
+            else if self.board[pos_after_move.0 as usize][pos_after_move.1 as usize] != '_' {
+                 // This has to be checked last. If a tetromino is (partly) out of the board and
+                // overlaps with an occupied spot, it should first be addressed that the
+                // tetromino is not completely on the board.
+                return Err(MoveNotAllowedError::OverlapsWithOccupied);
+            }
+
+        }
+        self.current_tetromino.move_pos(step);
+
+        return Ok(());
+    }
+
+    fn add_current_tetromino_to_board(&mut self) {
+        // Makes the current tetromino part of the frozen blocks on the board
+        for occupied_pos in &self.current_tetromino.occupied_positions {
+            let i = occupied_pos.0 as usize;
+            let j = occupied_pos.1 as usize;
+            self.board[i][j] = self.current_tetromino.shape.name;
+        }
+        self.emitter.emit_board("board", &self.board);
+    }
+
+    pub fn tick(&mut self) -> bool {
+        /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
+        /// the tick fails because the player is game-over.
+        let result = self.try_move((1, 0));
+        match result {
+            Ok(_) => {},
+            Err(_) => {
+                self.add_current_tetromino_to_board();
+                self.current_tetromino = Tetromino::new('I');
+
+                match self.try_move((0, 0)) {
+                    Ok(_) => {},
+                    // Game over if newly placed block overlaps with board
+                    Err(MoveNotAllowedError::OverlapsWithOccupied) => {
+                        self.emitter.emit_string("game_over", "GAME OVER".to_string());
+                        return false;
+                    }
+                    // Other err is not expected to occur.
+                    Err(_) => panic!("Unexpected error encountered when creating next tetromino.")
+                }
+            }
+
+        }
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
+        return true;
+    }
+
+    fn game_over(&self) {
+
     }
 
     pub fn reset(&mut self) {
@@ -199,6 +292,7 @@ impl Game {
         self.level = 1;
         self.set_tick_rate();
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
+        self.emitter.emit_board("board", &self.board);
     }
 
     pub fn get_tick_rate(&self) -> f64 {
@@ -243,7 +337,10 @@ impl GameRunner {
             while self_clone.running.load(atomic::Ordering::SeqCst) {
                 {
                     let mut game = self_clone.game.lock().unwrap();
-                    game.tick();
+                    let success = game.tick();
+                    if success != true {
+                        break
+                    }
                     sleep_time = 1. / game.get_tick_rate();
                 }
                 thread::sleep(Duration::from_secs_f64(sleep_time));

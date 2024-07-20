@@ -1,6 +1,7 @@
 use tauri::{AppHandle, Manager};
 
 use crate::game::Tetromino;
+use crate::game::{BOARD_ROWS, BOARD_COLS};
 
 #[derive(Clone, serde::Serialize)]
 struct NumberPayload {
@@ -16,6 +17,11 @@ struct StringPayload {
 struct TetrominoPayload<'a> {
     name: char,
     occupied_positions: &'a Vec<(i32, i32)>
+}
+
+#[derive(Clone, serde::Serialize)]
+struct BoardPayload<'a> {
+    board: &'a [[char; BOARD_COLS]; BOARD_ROWS]
 }
 
 pub struct Emitter {
@@ -46,6 +52,15 @@ impl Emitter {
         let payload = TetrominoPayload{
             name: tetromino.get_shape_name(),
             occupied_positions: tetromino.get_occupied_positions()
+        };
+        self.app_handle
+            .emit_all(event_name, payload)
+            .unwrap();
+    }
+
+    pub fn emit_board(&self, event_name: &str, board: &[[char; BOARD_COLS]; BOARD_ROWS]) {
+        let payload = BoardPayload{
+            board
         };
         self.app_handle
             .emit_all(event_name, payload)

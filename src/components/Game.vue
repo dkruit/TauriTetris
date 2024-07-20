@@ -44,12 +44,25 @@ function color_from_value(value: string): string {
   }
 }
 
+const board_rows = 7
+const board_columns = 7
 
-const tick_count = ref(0)
+const gameBoard = ref(new Board(board_rows, board_columns))
 
 listen("tick", (event) => {
   let block = new Block(event.payload.occupied_positions, event.payload.name)
-  gameBoard.value.drawBlock(block)
+  gameBoard.value.setBlock(block)
+})
+
+listen("board", (event) => {
+  console.log("Received board update.")
+  console.log(event.payload.board)
+  gameBoard.value.setBoard(event.payload.board)
+
+})
+
+listen("game_over", (event) => {
+  console.log("GAME OVER")
 })
 
 async function startGame() {
@@ -60,16 +73,12 @@ async function stopGame() {
   await invoke("reset_game")
 }
 
-const board_rows = 7
-const board_columns = 7
-
-const gameBoard = ref(new Board(board_rows, board_columns))
 
 const block = new Block([[0, 0], [0, 1], [1, 0], [1, 1]], "S")
-gameBoard.value.drawBlock(block)
+gameBoard.value.setBlock(block)
 
 function drawBlock() {
-  gameBoard.value.drawBlock(new Block([[6,0], [6,1]], "O"))
+  gameBoard.value.setBlock(new Block([[6,0], [6,1]], "O"))
   console.log("DRAWING BLOCK")
 }
 </script>

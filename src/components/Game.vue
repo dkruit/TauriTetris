@@ -48,7 +48,8 @@ function color_from_value(value: string): string {
 const tick_count = ref(0)
 
 listen("tick", (event) => {
-  console.log("Received tick: ", event.payload.value)
+  let block = new Block(event.payload.occupied_positions, event.payload.name)
+  gameBoard.value.drawBlock(block)
 })
 
 async function startGame() {

@@ -120,6 +120,14 @@ impl Tetromino {
         return tetromino;
     }
 
+    pub fn get_shape_name(&self) -> char {
+        return self.shape.name;
+    }
+
+    pub fn get_occupied_positions(&self) -> &Vec<(i32, i32)> {
+        return &self.occupied_positions;
+    }
+
     pub fn move_pos(&mut self, step: (i32, i32)) {
         self.pos = (self.pos.0 + step.0, self.pos.1 + step.1);
         self.set_occupied_positions();
@@ -179,7 +187,7 @@ impl Game {
         let result = format!("{:?} {}",
                              self.current_tetromino.occupied_positions,
                              self.current_tetromino.shape.name);
-        self.emitter.emit("tick", result.to_string());
+        self.emitter.emit_tetromino("tick", &self.current_tetromino);
     }
 
     pub fn reset(&mut self) {
@@ -187,7 +195,7 @@ impl Game {
         self.current_tetromino = Tetromino::new('T');
         self.level = 1;
         self.set_tick_rate();
-        self.emitter.emit("reset", "RESET".to_string());
+        self.emitter.emit_tetromino("tick", &self.current_tetromino);
     }
 
     pub fn get_tick_rate(&self) -> f64 {

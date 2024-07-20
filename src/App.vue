@@ -3,6 +3,7 @@
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import Greet from "./components/Greet.vue";
 import Counter from "./components/Counter.vue";
+import Game from "./components/Game.vue";
 </script>
 
 <template>
@@ -25,6 +26,7 @@ import Counter from "./components/Counter.vue";
 
     <Greet />
     <Counter />
+    <Game />
   </div>
 </template>
 

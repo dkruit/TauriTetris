@@ -3,6 +3,9 @@
 
   <div>
     <button v-on:click="drawBlock()">Draw block</button>
+    <button v-on:click="startGame()">Start Game</button>
+    <button v-on:click="stopGame()">Stop Game</button>
+    
   </div>
 
   <div class="boardrow" v-for="row of gameBoard.board">
@@ -16,6 +19,8 @@
 <script setup lang="ts">
 import {ref} from "vue"
 import { Board, Block } from "../game"
+import {listen} from "@tauri-apps/api/event";
+import {invoke} from "@tauri-apps/api/tauri";
 
 function color_from_value(value: string): string {
   switch (value) {
@@ -37,6 +42,22 @@ function color_from_value(value: string): string {
       return "firebrick"
 
   }
+}
+
+
+const tick_count = ref(0)
+
+listen("tick", (event) => {
+  console.log("Received tick")
+  tick_count.value++
+})
+
+async function startGame() {
+  await invoke("start_game")
+}
+
+async function stopGame() {
+  await invoke("reset_game")
 }
 
 const board_rows = 7

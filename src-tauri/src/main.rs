@@ -6,7 +6,9 @@ use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
 mod counter;
 mod emitter;
+mod game;
 use counter::{Counter, CounterRunner};
+use game::{Game, GameRunner};
 use emitter::Emitter;
 
 fn make_menu() -> Menu {
@@ -50,6 +52,17 @@ fn reset_counter(counter_runner: State<CounterRunner>) {
     counter_runner.reset();
 }
 
+#[tauri::command]
+fn start_game(game_runner: State<GameRunner>) {
+    game_runner.run();
+}
+
+#[tauri::command]
+fn reset_game(game_runner: State<GameRunner>) {
+    // Stop the counter by setting the running flag to false
+    game_runner.reset();
+}
+
 
 fn main() {
     tauri::Builder::default()
@@ -61,6 +74,11 @@ fn main() {
             let counter_runner = CounterRunner::new(Counter::new(1.0, emitter));
             app.manage(counter_runner);
 
+            let app_handle = app.handle();
+            let emitter = Emitter::new(app_handle);
+            let game_runner = GameRunner::new(Game::new(emitter));
+            app.manage(game_runner);
+
             return Ok(());
         })
         .menu(make_menu())
@@ -70,6 +88,8 @@ fn main() {
             pause_counter,
             reset_counter,
             add_value,
+            start_game,
+            reset_game,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

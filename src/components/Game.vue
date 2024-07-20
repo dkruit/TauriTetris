@@ -5,7 +5,7 @@
     <button v-on:click="drawBlock()">Draw block</button>
     <button v-on:click="startGame()">Start Game</button>
     <button v-on:click="stopGame()">Stop Game</button>
-    
+
   </div>
 
   <div class="boardrow" v-for="row of gameBoard.board">
@@ -48,8 +48,7 @@ function color_from_value(value: string): string {
 const tick_count = ref(0)
 
 listen("tick", (event) => {
-  console.log("Received tick")
-  tick_count.value++
+  console.log("Received tick: ", event.payload.value)
 })
 
 async function startGame() {

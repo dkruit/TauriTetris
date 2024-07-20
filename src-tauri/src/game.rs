@@ -120,6 +120,11 @@ impl Tetromino {
         return tetromino;
     }
 
+    pub fn move_pos(&mut self, step: (i32, i32)) {
+        self.pos = (self.pos.0 + step.0, self.pos.1 + step.1);
+        self.set_occupied_positions();
+    }
+
     fn set_occupied_positions(&mut self) {
         // Calculate the positions of the board which are occupied by the Tetromino, based on its
         // position and shape
@@ -170,11 +175,16 @@ impl Game {
     }
 
     pub fn tick(&mut self) {
-        self.emitter.emit("tick", "TICK".to_string());
+        self.current_tetromino.move_pos((1, 0));
+        let result = format!("{:?} {}",
+                             self.current_tetromino.occupied_positions,
+                             self.current_tetromino.shape.name);
+        self.emitter.emit("tick", result.to_string());
     }
 
     pub fn reset(&mut self) {
         self.board = [['_'; SHAPE_SIZE]; SHAPE_SIZE];
+        self.current_tetromino = Tetromino::new('T');
         self.level = 1;
         self.set_tick_rate();
         self.emitter.emit("reset", "RESET".to_string());

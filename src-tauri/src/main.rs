@@ -1,8 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::{Arc, Mutex, atomic};
-
 use tauri::{State, Manager};
 use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
@@ -41,9 +39,15 @@ fn add_value(value: i32, counter_runner: State<CounterRunner>) {
 }
 
 #[tauri::command]
-fn stop_counter(counter_runner: State<CounterRunner>) {
+fn pause_counter(counter_runner: State<CounterRunner>) {
     // Stop the counter by setting the running flag to false
-    counter_runner.running.store(false, atomic::Ordering::SeqCst);
+    counter_runner.pause();
+}
+
+#[tauri::command]
+fn reset_counter(counter_runner: State<CounterRunner>) {
+    // Stop the counter by setting the running flag to false
+    counter_runner.reset();
 }
 
 
@@ -54,16 +58,19 @@ fn main() {
             let emitter = Emitter::new(app_handle);
 
             // Create a Counter instance with a sleep time of 1 second
-            let counter_runner = CounterRunner {
-                counter: Arc::new(Mutex::new(Counter::new(1.0, emitter))),
-                running: Arc::new(atomic::AtomicBool::new(false))
-            };
+            let counter_runner = CounterRunner::new(Counter::new(1.0, emitter));
             app.manage(counter_runner);
 
             return Ok(());
         })
         .menu(make_menu())
-        .invoke_handler(tauri::generate_handler![greet, start_counter, stop_counter, add_value])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            start_counter,
+            pause_counter,
+            reset_counter,
+            add_value,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

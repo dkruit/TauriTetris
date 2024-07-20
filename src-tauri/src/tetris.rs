@@ -20,6 +20,11 @@ impl Counter {
         self.emitter.emit("counter_updated", self.value.to_string());
     }
 
+    pub fn reset(&mut self) {
+        self.value = 0;
+        self.emitter.emit("counter_updated", self.value.to_string());
+    }
+
     pub fn get_value(&self) -> i32 {
         return self.value;
     }
@@ -34,12 +39,19 @@ impl Counter {
 #[derive(Clone)]
 pub struct CounterRunner {
     pub counter: Arc<Mutex<Counter>>,
-    pub running: Arc<atomic::AtomicBool>
+    running: Arc<atomic::AtomicBool>
 }
 
 impl CounterRunner {
+    pub fn new(counter: Counter) -> Self {
+        return CounterRunner{
+            counter: Arc::new(Mutex::new(counter)),
+            running: Arc::new(atomic::AtomicBool::new(false))
+        };
+    }
+
     pub fn run(&self) {
-        // Early return if the counter is already started
+        // Early return if running is true: the counter is already started
         if self.running.load(atomic::Ordering::SeqCst) {
             println!("Counter is already running!");
             return;
@@ -55,6 +67,7 @@ impl CounterRunner {
         thread::spawn(move || {
             let mut sleep_time;
 
+            // Continue as long as running is true
             while self_clone.running.load(atomic::Ordering::SeqCst) {
                 {
                     let mut counter = self_clone.counter.lock().unwrap();
@@ -64,5 +77,15 @@ impl CounterRunner {
                 thread::sleep(Duration::from_secs_f64(sleep_time));
             }
         });
+    }
+
+    pub fn pause(&self) {
+        self.running.store(false, atomic::Ordering::SeqCst);
+    }
+
+    pub fn reset(&self) {
+        self.running.store(false, atomic::Ordering::SeqCst);
+        let mut counter = self.counter.lock().unwrap();
+        counter.reset();
     }
 }

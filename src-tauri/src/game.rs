@@ -5,7 +5,10 @@ use std::time::Duration;
 use crate::emitter::Emitter;
 
 const SHAPE_SIZE: usize = 4; // A tetromino fills a SHAPE_SIZE by SHAPE_SIZE grid
-const BOARD_SIZE: (i32, i32) = (7, 7);
+const BOARD_ROWS: usize = 7;
+const BOARD_COLS: usize = 7;
+
+const TETROMINO_INITIAL_POS: (i32, i32) = (-1, (BOARD_COLS-SHAPE_SIZE) as i32 / 2);
 
 #[derive(Clone)]
 struct TetrominoShape {
@@ -112,7 +115,7 @@ impl Tetromino {
             .clone();
 
         let mut tetromino = Tetromino {
-            pos: (0, 2),
+            pos: (TETROMINO_INITIAL_POS),
             shape,
             occupied_positions: Vec::new()
         };
@@ -155,7 +158,7 @@ impl Tetromino {
 }
 
 pub struct Game {
-    board: [[char; SHAPE_SIZE]; SHAPE_SIZE],
+    board: [[char; BOARD_COLS]; BOARD_ROWS],
     current_tetromino: Tetromino,
 
     level: i32,
@@ -166,7 +169,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(emitter: Emitter) -> Self {
-        let board = [['_'; SHAPE_SIZE]; SHAPE_SIZE];
+        let board = [['_'; BOARD_COLS]; BOARD_ROWS];
         let mut game =  Game {
             board,
             current_tetromino: Tetromino::new('T'),
@@ -191,7 +194,7 @@ impl Game {
     }
 
     pub fn reset(&mut self) {
-        self.board = [['_'; SHAPE_SIZE]; SHAPE_SIZE];
+        self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
         self.current_tetromino = Tetromino::new('T');
         self.level = 1;
         self.set_tick_rate();

@@ -17,12 +17,12 @@ impl Counter {
 
     pub fn increment(&mut self) {
         self.value += 1;
-        self.emitter.emit("counter_updated", self.value.to_string());
+        self.emitter.emit_number("counter_updated", self.value);
     }
 
     pub fn reset(&mut self) {
         self.value = 0;
-        self.emitter.emit("counter_updated", self.value.to_string());
+        self.emitter.emit_number("counter_updated", self.value);
     }
 
     pub fn get_value(&self) -> i32 {

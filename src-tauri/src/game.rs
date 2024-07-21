@@ -219,7 +219,7 @@ impl Game {
             else if pos_after_move.1 < 0 {
                 return Err(MoveNotAllowedError::TooFarLeft)
             }
-            else if pos_after_move.0 >= BOARD_COLS  as i32 {
+            else if pos_after_move.1 >= BOARD_COLS  as i32 {
                 return Err(MoveNotAllowedError::TooFarRight)
             }
             else if pos_after_move.0 >= BOARD_ROWS as i32 {

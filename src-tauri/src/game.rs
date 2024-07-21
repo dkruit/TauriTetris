@@ -457,6 +457,10 @@ impl GameRunner {
         };
     }
 
+    pub fn get_running(&self) -> bool {
+        return self.running.load(atomic::Ordering::SeqCst);
+    }
+
     pub fn run(&self) {
         // Early return if running is true: the game is already started
         if self.running.load(atomic::Ordering::SeqCst) {

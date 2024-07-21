@@ -72,6 +72,10 @@ fn reset_game(game_runner: State<GameRunner>) {
 fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
     // Move the tetromino left, right or down. Returns success if the move can be made, fail if
     // the move can not be made.
+
+    // Early return if game is not running
+    if !game_runner.get_running() { return false; }
+
     let mut game = game_runner.game.lock().unwrap();
     let success = game.proces_arrow_key(key);
     return success;
@@ -81,6 +85,10 @@ fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
 fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
     // Rotate the tetromino clockwise or counter-clockwise.
     // Returns success if the move can be made, fail if the move can not be made.
+
+    // Early return if game is not running
+    if !game_runner.get_running() { return false; }
+
     let mut game = game_runner.game.lock().unwrap();
     let success = game.process_rotation(direction);
     return success

@@ -59,7 +59,7 @@ fn start_game(game_runner: State<GameRunner>) {
 
 #[tauri::command]
 fn reset_game(game_runner: State<GameRunner>) {
-    // Stop the counter by setting the running flag to false
+    // Stop the game by setting the running flag to false
     game_runner.reset();
 }
 

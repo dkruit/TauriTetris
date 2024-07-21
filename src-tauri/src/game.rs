@@ -339,6 +339,8 @@ impl GameRunner {
                     let mut game = self_clone.game.lock().unwrap();
                     let success = game.tick();
                     if success != true {
+                        // Game over, stop running and end loop
+                        self_clone.running.store(false, atomic::Ordering::SeqCst);
                         break
                     }
                     sleep_time = 1. / game.get_tick_rate();

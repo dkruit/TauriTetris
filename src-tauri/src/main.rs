@@ -82,9 +82,7 @@ fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
     // Rotate the tetromino clockwise or counter-clockwise.
     // Returns success if the move can be made, fail if the move can not be made.
     let mut game = game_runner.game.lock().unwrap();
-    // let success = game.proces_rotation(direction);
-    let success = true;
-    println!("Rotation {}", direction);
+    let success = game.process_rotation(direction);
     return success
 }
 

@@ -26,7 +26,7 @@ impl TetrominoShape {
 
         for i in 0..SHAPE_SIZE {
             for j in 0..SHAPE_SIZE {
-                rotated_shape[j][SHAPE_SIZE-i] = self.shape[i][j];
+                rotated_shape[j][SHAPE_SIZE-1-i] = self.shape[i][j];
             }
         }
         self.shape = rotated_shape;
@@ -37,7 +37,7 @@ impl TetrominoShape {
 
         for i in 0..SHAPE_SIZE {
             for j in 0..SHAPE_SIZE {
-                rotated_shape[SHAPE_SIZE-j][i] = self.shape[i][j];
+                rotated_shape[SHAPE_SIZE-1-j][i] = self.shape[i][j];
             }
         }
         self.shape = rotated_shape;
@@ -103,6 +103,7 @@ const SHAPES: [TetrominoShape; 7] = [
             [0,0,0,0]] },
 ];
 
+#[derive(Clone)]
 pub struct Tetromino{
     pos: (i32, i32), // x and y coordinate of top left corner
     shape: TetrominoShape,
@@ -166,6 +167,14 @@ impl Tetromino {
         return &self.occupied_positions;
     }
 
+    pub fn rotate(&mut self, direction: &str) {
+        match direction {
+            "clockwise" => { self.shape.rotate_clockwise(); }
+            "counter-clockwise" => { self.shape.rotate_anti_clockwise(); }
+            _ => { println!("Invalid rotation direction: {}", direction); }
+        }
+        self.set_occupied_positions();
+    }
     pub fn move_pos(&mut self, step: (i32, i32)) {
         self.pos = (self.pos.0 + step.0, self.pos.1 + step.1);
         self.set_occupied_positions();
@@ -249,6 +258,25 @@ impl Game {
             Err(_) => { success = false; }
         }
 
+        return success;
+    }
+
+    pub fn process_rotation(&mut self, direction: &str) -> bool {
+        println!("Rotation {}", direction);
+        let mut tetromino = self.current_tetromino.clone();
+
+        tetromino.rotate(direction);
+
+        // Check if position after rotation is valid
+        let result = self.check_move(&tetromino, &(0, 0));
+
+        let success;
+        match result {
+            Ok(_) => { self.current_tetromino = tetromino; success = true;}
+            Err(MoveNotAllowedError::TooFarLeft) => { success = false; }
+            Err(MoveNotAllowedError::TooFarRight) => { success = false; }
+            Err(_) => { success = false; }
+        }
         return success;
     }
 

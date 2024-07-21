@@ -241,7 +241,7 @@ impl Game {
         };
 
         let success;
-        match self.check_move(&step) {
+        match self.check_move(&self.current_tetromino, &step) {
             Ok(_) => {
                 self.current_tetromino.move_pos(step);
                 self.emitter.emit_tetromino("tick", &self.current_tetromino);
@@ -253,8 +253,12 @@ impl Game {
         return success;
     }
 
-    fn check_move(&self, step: &(i32, i32)) -> Result<(), MoveNotAllowedError> {
-        for occupied_pos in &self.current_tetromino.occupied_positions {
+    fn check_move(
+        &self,
+        tetromino: &Tetromino,
+        step: &(i32, i32)) -> Result<(), MoveNotAllowedError> {
+
+        for occupied_pos in &tetromino.occupied_positions {
             let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
 
             if pos_after_move.0 < 0 {
@@ -295,7 +299,7 @@ impl Game {
         /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
         /// the tick fails because the player is game-over.
         let step = (1, 0);
-        let result = self.check_move(&step);
+        let result = self.check_move(&self.current_tetromino, &step);
         match result {
             Ok(_) => { self.current_tetromino.move_pos(step) },
             Err(err) => {
@@ -303,7 +307,7 @@ impl Game {
                 self.add_current_tetromino_to_board();
                 self.current_tetromino = Tetromino::new_random();
 
-                match self.check_move(&(0, 0)) {
+                match self.check_move(&self.current_tetromino, &(0, 0)) {
                     Ok(_) => {},
                     // Game over if newly placed block overlaps with board
                     Err(MoveNotAllowedError::OverlapsWithOccupied) => {

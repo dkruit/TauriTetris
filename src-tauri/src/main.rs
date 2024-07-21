@@ -77,6 +77,17 @@ fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
     return success;
 }
 
+#[tauri::command]
+fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
+    // Rotate the tetromino clockwise or counter-clockwise.
+    // Returns success if the move can be made, fail if the move can not be made.
+    let mut game = game_runner.game.lock().unwrap();
+    // let success = game.proces_rotation(direction);
+    let success = true;
+    println!("Rotation {}", direction);
+    return success
+}
+
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -105,6 +116,7 @@ fn main() {
             start_game,
             reset_game,
             process_arrow_key,
+            process_rotation,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

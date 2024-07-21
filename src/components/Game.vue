@@ -73,11 +73,23 @@ document.addEventListener('keydown', (event: KeyboardEvent) => {
   if (event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
     arrow_click(event.key);
   }
+  if (event.key === 'Z' || event.key === 'z') {
+    rotate("counter-clockwise");
+  }
+  if (event.key === 'X' || event.key === 'x') {
+    rotate("clockwise");
+  }
 });
 
 async function arrow_click(key: string) {
   console.log(key)
   let result = await invoke("process_arrow_key", {"key": key});
+  console.log(result)
+}
+
+async function rotate(direction: string) {
+  console.log(direction)
+  let result = await invoke("process_rotation", {"direction": direction});
   console.log(result)
 }
 

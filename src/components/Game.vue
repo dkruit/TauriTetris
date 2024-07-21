@@ -5,12 +5,15 @@
     <button v-on:click="drawBlock()">Draw block</button>
     <button v-on:click="startGame()">Start Game</button>
     <button v-on:click="stopGame()">Stop Game</button>
-
   </div>
 
-  <div class="boardrow" v-for="row of gameBoard.board">
+  <div>
+    <h2 class="gameover"> {{ gameOver }} </h2>
+
+    <div class="boardrow" v-for="row of gameBoard.board">
       <p class="square" v-for="val of row"
          :style="{backgroundColor: color_from_value(val)}"></p>
+    </div>
   </div>
 
 
@@ -48,6 +51,7 @@ const board_rows = 7
 const board_columns = 7
 
 const gameBoard = ref(new Board(board_rows, board_columns))
+const gameOver = ref("")
 
 listen("tick", (event) => {
   let block = new Block(event.payload.occupied_positions, event.payload.name)
@@ -56,13 +60,13 @@ listen("tick", (event) => {
 
 listen("board", (event) => {
   console.log("Received board update.")
-  console.log(event.payload.board)
   gameBoard.value.setBoard(event.payload.board)
 
 })
 
 listen("game_over", (event) => {
   console.log("GAME OVER")
+  gameOver.value = "GAME OVER"
 })
 
 async function startGame() {
@@ -71,6 +75,7 @@ async function startGame() {
 
 async function stopGame() {
   await invoke("reset_game")
+  gameOver.value = ""
 }
 
 
@@ -95,5 +100,15 @@ function drawBlock() {
   margin: 1px;
   width: 40px;
   height: 40px;
+}
+
+.gameover {
+  color: red;
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
+  text-align: center;
 }
 </style>

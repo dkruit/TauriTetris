@@ -300,6 +300,48 @@ impl Game {
         return success;
     }
 
+    fn check_row_full(&self, row_index: usize) -> bool {
+        let mut row_full = true;
+        for j in 0..BOARD_COLS {
+            if self.board[row_index][j] == '_' {
+                row_full = false;
+                break;
+            }
+        }
+        return row_full;
+    }
+
+    fn clear_full_rows(&mut self) {
+        let mut n_cleared = 0;
+
+        for i in (0..BOARD_ROWS).rev() {
+            // While loop because if the row is full the other rows are moved down.
+            // Another full row can take the place of the cleared row, which also has to be cleared.
+            while self.check_row_full(i) {
+                // Move all the rows above i one position down
+                for other_row_index in (0..i).rev() {
+                    for j in 0..BOARD_COLS {
+                        self.board[other_row_index+1][j] = self.board[other_row_index][j];
+                    }
+                }
+                n_cleared += 1;
+            }
+        }
+
+        // Make the top rows clear
+        for i in 0..n_cleared {
+            for j in 0..BOARD_COLS {
+                self.board[i][j] = '_';
+            }
+        }
+
+        // Update board if rows have been cleared
+        if n_cleared > 0 {
+            self.emitter.emit_board("board", &self.board);
+            println!("Cleared {} rows", n_cleared);
+        }
+    }
+
     fn check_move(
         &self,
         tetromino: &Tetromino,
@@ -364,6 +406,7 @@ impl Game {
             Err(err) => {
                 println!("Can not move tetromino down: {:?}", err);
                 self.add_current_tetromino_to_board();
+                self.clear_full_rows();
                 self.current_tetromino = Tetromino::new_random();
 
                 match self.check_move(&self.current_tetromino, &(0, 0)) {

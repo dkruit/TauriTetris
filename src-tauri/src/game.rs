@@ -224,8 +224,8 @@ impl Game {
         return game;
     }
 
-    fn set_tick_rate(&self) -> f64 {
-        return 1.5 * (self. level as f64);
+    fn set_tick_rate(&mut self) {
+        self.tick_rate = 5. * (self.level as f64);
     }
 
     fn try_move(&mut self, step: (i32, i32)) -> Result<(), MoveNotAllowedError> {

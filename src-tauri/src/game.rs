@@ -5,8 +5,8 @@ use std::time::Duration;
 use crate::emitter::Emitter;
 
 const SHAPE_SIZE: usize = 4; // A tetromino fills a SHAPE_SIZE by SHAPE_SIZE grid
-pub const BOARD_ROWS: usize = 7;
-pub const BOARD_COLS: usize = 7;
+pub const BOARD_ROWS: usize = 21;
+pub const BOARD_COLS: usize = 10;
 
 const TETROMINO_INITIAL_POS: (i32, i32) = (0, (BOARD_COLS-SHAPE_SIZE) as i32 / 2);
 

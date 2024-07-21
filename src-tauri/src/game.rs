@@ -1,3 +1,6 @@
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+
 use std::sync::{Arc, Mutex, atomic};
 use std::thread;
 use std::time::Duration;
@@ -111,6 +114,22 @@ impl Tetromino {
         let shape = SHAPES
             .iter()
             .find(|shape| shape.name == shape_name)
+            .unwrap()
+            .clone();
+
+        let mut tetromino = Tetromino {
+            pos: TETROMINO_INITIAL_POS,
+            shape,
+            occupied_positions: Vec::new()
+        };
+        tetromino.set_occupied_positions();
+        return tetromino;
+    }
+
+    pub fn new_random() -> Self {
+        let mut rng = thread_rng();
+        let shape = SHAPES
+            .choose(&mut rng)
             .unwrap()
             .clone();
 
@@ -257,7 +276,7 @@ impl Game {
             Ok(_) => {},
             Err(_) => {
                 self.add_current_tetromino_to_board();
-                self.current_tetromino = Tetromino::new('I');
+                self.current_tetromino = Tetromino::new_random();
 
                 match self.try_move((0, 0)) {
                     Ok(_) => {},
@@ -282,7 +301,7 @@ impl Game {
 
     pub fn reset(&mut self) {
         self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
-        self.current_tetromino = Tetromino::new('T');
+        self.current_tetromino = Tetromino::new_random();
         self.level = 1;
         self.set_tick_rate();
         self.emitter.emit_tetromino("tick", &self.current_tetromino);

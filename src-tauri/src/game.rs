@@ -8,7 +8,7 @@ const SHAPE_SIZE: usize = 4; // A tetromino fills a SHAPE_SIZE by SHAPE_SIZE gri
 pub const BOARD_ROWS: usize = 7;
 pub const BOARD_COLS: usize = 7;
 
-const TETROMINO_INITIAL_POS: (i32, i32) = (-1, (BOARD_COLS-SHAPE_SIZE) as i32 / 2);
+const TETROMINO_INITIAL_POS: (i32, i32) = (0, (BOARD_COLS-SHAPE_SIZE) as i32 / 2);
 
 #[derive(Clone)]
 struct TetrominoShape {
@@ -114,14 +114,8 @@ impl Tetromino {
             .unwrap()
             .clone();
 
-        // Set initial postion
-        let mut pos=  TETROMINO_INITIAL_POS;
-        if shape.name == 'I' {
-            pos = (pos.0-1, pos.1)
-        }
-
         let mut tetromino = Tetromino {
-            pos,
+            pos: TETROMINO_INITIAL_POS,
             shape,
             occupied_positions: Vec::new()
         };

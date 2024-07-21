@@ -41,7 +41,7 @@ function color_from_value(value: string): string {
       return "green"
     case "T":
       return "darkviolet"
-    case "":
+    case "Z":
       return "firebrick"
 
   }

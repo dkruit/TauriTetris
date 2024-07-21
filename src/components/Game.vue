@@ -2,7 +2,6 @@
   <h3>Game</h3>
 
   <div>
-    <button v-on:click="drawBlock()">Draw block</button>
     <button v-on:click="startGame()">Start Game</button>
     <button v-on:click="stopGame()">Stop Game</button>
   </div>
@@ -77,14 +76,6 @@ async function stopGame() {
   gameOver.value = ""
 }
 
-
-const block = new Block([[0, 0], [0, 1], [1, 0], [1, 1]], "S")
-gameBoard.value.setBlock(block)
-
-function drawBlock() {
-  gameBoard.value.setBlock(new Block([[6,0], [6,1]], "O"))
-  console.log("DRAWING BLOCK")
-}
 </script>
 
 <style scoped>

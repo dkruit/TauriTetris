@@ -8,7 +8,7 @@ mod counter;
 mod emitter;
 mod game;
 use counter::{Counter, CounterRunner};
-use game::{Game, GameRunner};
+use game::{Game, GameRunner, BOARD_ROWS, BOARD_COLS};
 use emitter::Emitter;
 
 fn make_menu() -> Menu {
@@ -53,6 +53,11 @@ fn reset_counter(counter_runner: State<CounterRunner>) {
 }
 
 #[tauri::command]
+fn get_board_dimensions() -> (i32, i32) {
+    return (BOARD_ROWS as i32, BOARD_COLS as i32);
+}
+
+#[tauri::command]
 fn start_game(game_runner: State<GameRunner>) {
     game_runner.run();
 }
@@ -88,6 +93,7 @@ fn main() {
             pause_counter,
             reset_counter,
             add_value,
+            get_board_dimensions,
             start_game,
             reset_game,
         ])

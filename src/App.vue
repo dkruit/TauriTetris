@@ -26,7 +26,9 @@ import Game from "./components/Game.vue";
 
     <Greet />
     <Counter />
-    <Game />
+    <Suspense>
+      <Game />
+    </Suspense>
   </div>
 </template>
 

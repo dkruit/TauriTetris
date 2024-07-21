@@ -47,10 +47,9 @@ function color_from_value(value: string): string {
   }
 }
 
-const board_rows = 7
-const board_columns = 7
+const board_shape = await invoke("get_board_dimensions")
 
-const gameBoard = ref(new Board(board_rows, board_columns))
+const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
 const gameOver = ref("")
 
 listen("tick", (event) => {

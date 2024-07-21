@@ -192,6 +192,7 @@ impl Tetromino {
     }
 }
 
+#[derive(Debug)]
 enum MoveNotAllowedError {
     TooFarLeft,
     TooFarRight,
@@ -274,7 +275,8 @@ impl Game {
         let result = self.try_move((1, 0));
         match result {
             Ok(_) => {},
-            Err(_) => {
+            Err(err) => {
+                println!("Can not move tetromino down: {:?}", err);
                 self.add_current_tetromino_to_board();
                 self.current_tetromino = Tetromino::new_random();
 

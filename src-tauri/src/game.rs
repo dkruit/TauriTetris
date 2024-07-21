@@ -4,6 +4,7 @@ use rand::thread_rng;
 use std::sync::{Arc, Mutex, atomic};
 use std::thread;
 use std::time::Duration;
+use std::time::Instant;
 
 use crate::emitter::Emitter;
 
@@ -203,8 +204,10 @@ impl Tetromino {
 
 #[derive(Debug)]
 enum MoveNotAllowedError {
-    TooFarLeft,
-    TooFarRight,
+    // Error for illegal moves. If the position is too far left or right, it contains a number
+    // describing the number of blocks so that the position can be adjusted accordingly.
+    TooFarLeft(i32),
+    TooFarRight(i32),
     TooFarDown,
     OverlapsWithOccupied,
 }
@@ -234,7 +237,7 @@ impl Game {
     }
 
     fn set_tick_rate(&mut self) {
-        self.tick_rate = 5. * (self.level as f64);
+        self.tick_rate = 1. * (self.level as f64);
     }
 
     pub fn proces_arrow_key(&mut self, key: &str) -> bool {
@@ -263,8 +266,8 @@ impl Game {
 
     pub fn process_rotation(&mut self, direction: &str) -> bool {
         println!("Rotation {}", direction);
-        let mut tetromino = self.current_tetromino.clone();
 
+        let mut tetromino = self.current_tetromino.clone();
         tetromino.rotate(direction);
 
         // Check if position after rotation is valid
@@ -272,9 +275,26 @@ impl Game {
 
         let success;
         match result {
-            Ok(_) => { self.current_tetromino = tetromino; success = true;}
-            Err(MoveNotAllowedError::TooFarLeft) => { success = false; }
-            Err(MoveNotAllowedError::TooFarRight) => { success = false; }
+            Ok(_) => {
+                self.current_tetromino = tetromino;
+                self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                success = true;
+            }
+
+            Err(MoveNotAllowedError::TooFarLeft(x)) | Err(MoveNotAllowedError::TooFarRight(x)) => {
+                let step = (0, -x);
+
+                match self.check_move(&tetromino, &step) {
+                    Ok(()) => {
+                        tetromino.move_pos(step);
+                        self.current_tetromino = tetromino;
+                        self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                        success = true;
+                    }
+                    Err(_) => { success = false; }
+                }
+            }
+
             Err(_) => { success = false; }
         }
         return success;
@@ -287,14 +307,25 @@ impl Game {
 
         // Check if tetromino goes too far left or right.
         // This is checked first, so that the position can be adjusted
+        let mut largest_dist = 0;
+        let mut err: Option<MoveNotAllowedError> = None;
         for occupied_pos in &tetromino.occupied_positions {
             let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
             if pos_after_move.1 < 0 {
-                return Err(MoveNotAllowedError::TooFarLeft)
+                let dist = -pos_after_move.1;
+                if dist > largest_dist {
+                    largest_dist = dist;
+                    err = Some(MoveNotAllowedError::TooFarLeft(-dist))
+                }
             } else if pos_after_move.1 >= BOARD_COLS as i32 {
-                return Err(MoveNotAllowedError::TooFarRight)
+                let dist = pos_after_move.1 + 1 - BOARD_COLS as i32 ;
+                if dist > largest_dist {
+                    largest_dist = dist;
+                    err = Some(MoveNotAllowedError::TooFarRight(dist))
+                }
             }
         }
+        if let Some(err_value) = err { return Err(err_value); }
 
         // Then check if it is too far down, or colliding with an already occupied spot.
         // This will not be adjusted and means the move is not valid.

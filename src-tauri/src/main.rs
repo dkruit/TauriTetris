@@ -68,6 +68,14 @@ fn reset_game(game_runner: State<GameRunner>) {
     game_runner.reset();
 }
 
+#[tauri::command]
+fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
+    // Move the tetromino left, right or down. Returns success if the move can be made, fail if
+    // the move can not be made.
+    let mut game = game_runner.game.lock().unwrap();
+    let success = game.proces_arrow_key(key);
+    return success;
+}
 
 fn main() {
     tauri::Builder::default()
@@ -96,6 +104,7 @@ fn main() {
             get_board_dimensions,
             start_game,
             reset_game,
+            process_arrow_key,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

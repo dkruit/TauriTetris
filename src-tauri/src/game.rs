@@ -229,6 +229,30 @@ impl Game {
         self.tick_rate = 5. * (self.level as f64);
     }
 
+    pub fn proces_arrow_key(&mut self, key: &str) -> bool {
+        let step = match key {
+            "ArrowDown" => (1, 0),
+            "ArrowLeft" => (0, -1),
+            "ArrowRight" => (0, 1),
+            _ => {
+                println!("Invalid key: {}", key);
+                (0, 0)
+            }
+        };
+
+        let success;
+        let result = self.try_move(step);
+
+        match result {
+            Ok(_) => {
+                self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                success = true;
+            },
+            Err(_) => { success = false; }
+        }
+        return success;
+    }
+
     fn try_move(&mut self, step: (i32, i32)) -> Result<(), MoveNotAllowedError> {
         for occupied_pos in &self.current_tetromino.occupied_positions {
             let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
@@ -296,10 +320,6 @@ impl Game {
         }
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
         return true;
-    }
-
-    fn game_over(&self) {
-
     }
 
     pub fn reset(&mut self) {

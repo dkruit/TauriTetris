@@ -46,11 +46,12 @@ function color_from_value(value: string): string {
   }
 }
 
+// Declare board references
 const board_shape = await invoke("get_board_dimensions")
-
 const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
 const gameOver = ref("")
 
+// Listen for game updates
 listen("tick", (event) => {
   let block = new Block(event.payload.occupied_positions, event.payload.name)
   gameBoard.value.setBlock(block)
@@ -67,6 +68,20 @@ listen("game_over", (event) => {
   gameOver.value = "GAME OVER"
 })
 
+// Set up responding to key presses
+document.addEventListener('keydown', (event: KeyboardEvent) => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    arrow_click(event.key);
+  }
+});
+
+async function arrow_click(key: string) {
+  console.log(key)
+  let result = await invoke("process_arrow_key", {"key": key});
+  console.log(result)
+}
+
+// Commands to start and stop the game
 async function startGame() {
   await invoke("start_game")
 }

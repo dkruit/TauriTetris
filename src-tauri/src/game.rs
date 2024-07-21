@@ -197,7 +197,6 @@ enum MoveNotAllowedError {
     TooFarLeft,
     TooFarRight,
     TooFarDown,
-    TooFarUp,
     OverlapsWithOccupied,
 }
 
@@ -261,10 +260,7 @@ impl Game {
         for occupied_pos in &tetromino.occupied_positions {
             let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
 
-            if pos_after_move.0 < 0 {
-                return Err(MoveNotAllowedError::TooFarUp)
-            }
-            else if pos_after_move.1 < 0 {
+            if pos_after_move.1 < 0 {
                 return Err(MoveNotAllowedError::TooFarLeft)
             }
             else if pos_after_move.1 >= BOARD_COLS  as i32 {

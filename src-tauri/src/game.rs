@@ -402,29 +402,36 @@ impl Game {
         let step = (1, 0);
         let result = self.check_move(&self.current_tetromino, &step);
         match result {
-            Ok(_) => { self.current_tetromino.move_pos(step) },
+            Ok(_) => {
+                self.current_tetromino.move_pos(step);
+            },
             Err(err) => {
                 println!("Can not move tetromino down: {:?}", err);
                 self.add_current_tetromino_to_board();
                 self.clear_full_rows();
-                self.current_tetromino = Tetromino::new_random();
-
-                match self.check_move(&self.current_tetromino, &(0, 0)) {
-                    Ok(_) => {},
-                    // Game over if newly placed block overlaps with board
-                    Err(MoveNotAllowedError::OverlapsWithOccupied) => {
-                        self.emitter.emit_tetromino("tick", &self.current_tetromino);
-                        self.emitter.emit_string("game_over", "GAME OVER".to_string());
-                        return false;
-                    }
-                    // Other err is not expected to occur.
-                    Err(_) => panic!("Unexpected error encountered when creating next tetromino.")
+                match self.set_new_tetromino() {
+                    Ok(_) => {}
+                    Err(_) => { return false; }
                 }
             }
-
         }
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
         return true;
+    }
+
+    fn set_new_tetromino(&mut self) -> Result<(), ()>{
+        self.current_tetromino = Tetromino::new_random();
+
+        // Game over if newly placed block overlaps with board
+        match self.check_move(&self.current_tetromino, &(0, 0)) {
+            Ok(_) => { return Ok(()); },
+            Err(MoveNotAllowedError::OverlapsWithOccupied) => {
+                self.emitter.emit_string("game_over", "GAME OVER".to_string());
+                return Err(());
+            }
+            // Other err is not expected to occur.
+            Err(_) => panic!("Unexpected error encountered when creating next tetromino.")
+        }
     }
 
     pub fn reset(&mut self) {

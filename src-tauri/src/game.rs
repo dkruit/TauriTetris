@@ -257,26 +257,30 @@ impl Game {
         tetromino: &Tetromino,
         step: &(i32, i32)) -> Result<(), MoveNotAllowedError> {
 
+        // Check if tetromino goes too far left or right.
+        // This is checked first, so that the position can be adjusted
         for occupied_pos in &tetromino.occupied_positions {
             let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
-
             if pos_after_move.1 < 0 {
                 return Err(MoveNotAllowedError::TooFarLeft)
-            }
-            else if pos_after_move.1 >= BOARD_COLS  as i32 {
+            } else if pos_after_move.1 >= BOARD_COLS as i32 {
                 return Err(MoveNotAllowedError::TooFarRight)
             }
-            else if pos_after_move.0 >= BOARD_ROWS as i32 {
+        }
+
+        // Then check if it is too far down, or colliding with an already occupied spot.
+        // This will not be adjusted and means the move is not valid.
+        for occupied_pos in &tetromino.occupied_positions {
+            let pos_after_move = (occupied_pos.0 + step.0, occupied_pos.1 + step.1);
+            if pos_after_move.0 >= BOARD_ROWS as i32 {
                 return Err(MoveNotAllowedError::TooFarDown)
             }
-
             else if self.board[pos_after_move.0 as usize][pos_after_move.1 as usize] != '_' {
                  // This has to be checked last. If a tetromino is (partly) out of the board and
                 // overlaps with an occupied spot, it should first be addressed that the
                 // tetromino is not completely on the board.
                 return Err(MoveNotAllowedError::OverlapsWithOccupied);
             }
-
         }
         return Ok(());
     }

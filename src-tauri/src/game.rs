@@ -282,6 +282,7 @@ impl Game {
                     Ok(_) => {},
                     // Game over if newly placed block overlaps with board
                     Err(MoveNotAllowedError::OverlapsWithOccupied) => {
+                        self.emitter.emit_tetromino("tick", &self.current_tetromino);
                         self.emitter.emit_string("game_over", "GAME OVER".to_string());
                         return false;
                     }

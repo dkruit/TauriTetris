@@ -252,13 +252,25 @@ impl Game {
         };
 
         let success;
+
         match self.check_move(&self.current_tetromino, &step) {
             Ok(_) => {
                 self.current_tetromino.move_pos(step);
                 self.emitter.emit_tetromino("tick", &self.current_tetromino);
                 success = true;
             },
-            Err(_) => { success = false; }
+            Err(_) => {
+                // If arrow down failed, the tetromino can not move futher down, and the next
+                // tetromino has to be set
+                if key == "ArrowDown" {
+                    self.add_current_tetromino_to_board();
+                    match self.set_new_tetromino() {
+                        Ok(_) => { self.emitter.emit_tetromino("tick", &self.current_tetromino) }
+                        Err(_) => {}
+                    }
+                }
+                success = false;
+            }
         }
 
         return success;

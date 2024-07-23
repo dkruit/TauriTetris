@@ -313,6 +313,7 @@ impl Game {
             // While loop because if the row is full the other rows are moved down.
             // Another full row can take the place of the cleared row, which also has to be cleared.
             while self.check_row_full(i) {
+                println!("Clearing row {}", i);
                 // Move all the rows above i one position down
                 for other_row_index in (0..i).rev() {
                     for j in 0..BOARD_COLS {

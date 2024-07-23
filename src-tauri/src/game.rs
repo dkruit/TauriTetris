@@ -383,11 +383,13 @@ impl Game {
 
     fn add_current_tetromino_to_board(&mut self) {
         // Makes the current tetromino part of the frozen blocks on the board
+        // Clears full rows if the current block completes them
         for occupied_pos in &self.current_tetromino.occupied_positions {
             let i = occupied_pos.0 as usize;
             let j = occupied_pos.1 as usize;
             self.board[i][j] = self.current_tetromino.shape.name;
         }
+        self.clear_full_rows();
         self.emitter.emit_board("board", &self.board);
     }
 
@@ -403,7 +405,6 @@ impl Game {
             Err(err) => {
                 println!("Can not move tetromino down: {:?}", err);
                 self.add_current_tetromino_to_board();
-                self.clear_full_rows();
                 match self.set_new_tetromino() {
                     Ok(_) => {}
                     Err(_) => { return false; }

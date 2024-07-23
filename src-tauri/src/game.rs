@@ -44,7 +44,8 @@ impl TetrominoShape {
     }
 }
 
-const SHAPES: [TetrominoShape; 7] = [
+const N_SHAPES: usize = 7;
+const SHAPES: [TetrominoShape; N_SHAPES] = [
     TetrominoShape {
         name:'I',
         orientation: 0,
@@ -103,6 +104,44 @@ const SHAPES: [TetrominoShape; 7] = [
             [0,0,0,0]] },
 ];
 
+struct TetrominoShapeGenerator {
+    shape_permutation: [TetrominoShape; N_SHAPES],
+    current_index: usize,
+}
+
+impl TetrominoShapeGenerator {
+    pub fn new() -> Self {
+        let mut tetromino_shape_generator = TetrominoShapeGenerator {
+            shape_permutation: SHAPES.clone(),
+            current_index: 0,
+        };
+        tetromino_shape_generator.shuffle();
+        tetromino_shape_generator
+    }
+
+    fn shuffle(&mut self) {
+        let mut rng = thread_rng();
+        self.shape_permutation.shuffle(&mut rng);
+        self.current_index = 0;
+    }
+
+    pub fn make(name: char) -> Result<TetrominoShape, ()> {
+        match SHAPES.iter().find(|shape| shape.name == name){
+            None => Err(()),
+            Some(shape) => Ok(shape.clone())
+        }
+    }
+
+    pub fn make_random(&mut self) -> TetrominoShape {
+        if self.current_index >= N_SHAPES {
+            self.shuffle();
+        }
+        let result = self.shape_permutation[self.current_index].clone();
+        self.current_index += 1;
+        result
+    }
+}
+
 #[derive(Clone)]
 pub struct Tetromino{
     pos: (i32, i32), // x and y coordinate of top left corner
@@ -111,29 +150,7 @@ pub struct Tetromino{
 }
 
 impl Tetromino {
-    pub fn new(shape_name: char) -> Self {
-        let shape = SHAPES
-            .iter()
-            .find(|shape| shape.name == shape_name)
-            .unwrap()
-            .clone();
-
-        let mut tetromino = Tetromino {
-            pos: TETROMINO_INITIAL_POS,
-            shape,
-            occupied_positions: Vec::new()
-        };
-        tetromino.set_occupied_positions();
-        tetromino
-    }
-
-    pub fn new_random() -> Self {
-        let mut rng = thread_rng();
-        let shape = SHAPES
-            .choose(&mut rng)
-            .unwrap()
-            .clone();
-
+    pub fn new(shape: TetrominoShape) -> Self {
         let mut tetromino = Tetromino {
             pos: TETROMINO_INITIAL_POS,
             shape,
@@ -198,6 +215,7 @@ enum MoveNotAllowedError {
 pub struct Game {
     board: [[char; BOARD_COLS]; BOARD_ROWS],
     current_tetromino: Tetromino,
+    tetromino_shape_generator: TetrominoShapeGenerator,
 
     level: i32,
     tick_rate: f64, // tick_rate in ticks per second
@@ -210,7 +228,8 @@ impl Game {
         let board = [['_'; BOARD_COLS]; BOARD_ROWS];
         let mut game =  Game {
             board,
-            current_tetromino: Tetromino::new('T'),
+            current_tetromino: Tetromino::new(TetrominoShapeGenerator::make('T').unwrap()),
+            tetromino_shape_generator: TetrominoShapeGenerator::new(),
             level: 1,
             tick_rate: 1., // Dummy value
             emitter,
@@ -412,7 +431,7 @@ impl Game {
     }
 
     fn set_new_tetromino(&mut self) -> Result<(), ()>{
-        self.current_tetromino = Tetromino::new_random();
+        self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
 
         // Game over if newly placed block overlaps with board
         match self.check_move(&self.current_tetromino, &(0, 0)) {
@@ -428,7 +447,7 @@ impl Game {
 
     pub fn reset(&mut self) {
         self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
-        self.current_tetromino = Tetromino::new_random();
+        self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
         self.level = 1;
         self.set_tick_rate();
         self.emitter.emit_tetromino("tick", &self.current_tetromino);

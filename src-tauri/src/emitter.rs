@@ -30,7 +30,7 @@ pub struct Emitter {
 
 impl Emitter {
     pub fn new(app_handle: AppHandle) -> Self {
-        return Emitter{ app_handle };
+        Emitter{ app_handle }
     }
 
     pub fn emit_string(&self, event_name: &str, payload: String) {

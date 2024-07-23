@@ -124,7 +124,7 @@ impl Tetromino {
             occupied_positions: Vec::new()
         };
         tetromino.set_occupied_positions();
-        return tetromino;
+        tetromino
     }
 
     pub fn new_random() -> Self {
@@ -140,15 +140,15 @@ impl Tetromino {
             occupied_positions: Vec::new()
         };
         tetromino.set_occupied_positions();
-        return tetromino;
+        tetromino
     }
 
     pub fn get_shape_name(&self) -> char {
-        return self.shape.name;
+        self.shape.name
     }
 
     pub fn get_occupied_positions(&self) -> &Vec<(i32, i32)> {
-        return &self.occupied_positions;
+        &self.occupied_positions
     }
 
     pub fn rotate(&mut self, direction: &str) {
@@ -216,7 +216,7 @@ impl Game {
             emitter,
         };
         game.set_tick_rate(); // Initialize tick rate
-        return game;
+        game
     }
 
     fn set_tick_rate(&mut self) {
@@ -245,9 +245,8 @@ impl Game {
                 // tetromino has to be set
                 if key == "ArrowDown" {
                     self.add_current_tetromino_to_board();
-                    match self.set_new_tetromino() {
-                        Ok(_) => { self.emitter.emit_tetromino("tick", &self.current_tetromino) }
-                        Err(_) => {}
+                    if let Ok(_) = self.set_new_tetromino() {
+                        self.emitter.emit_tetromino("tick", &self.current_tetromino)
                     }
                 }
                 false
@@ -288,7 +287,7 @@ impl Game {
 
             Err(_) => { success = false; }
         }
-        return success;
+        success
     }
 
     fn check_row_full(&self, row_index: usize) -> bool {
@@ -299,7 +298,7 @@ impl Game {
                 break;
             }
         }
-        return row_full;
+        row_full
     }
 
     fn clear_full_rows(&mut self) {
@@ -375,7 +374,7 @@ impl Game {
                 return Err(MoveNotAllowedError::OverlapsWithOccupied);
             }
         }
-        return Ok(());
+        Ok(())
     }
 
     fn add_current_tetromino_to_board(&mut self) {
@@ -390,9 +389,9 @@ impl Game {
         self.emitter.emit_board("board", &self.board);
     }
 
+    /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
+    /// the tick fails because the player is game-over.
     pub fn tick(&mut self) -> bool {
-        /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
-        /// the tick fails because the player is game-over.
         let step = (1, 0);
         let result = self.check_move(&self.current_tetromino, &step);
         match result {
@@ -409,7 +408,7 @@ impl Game {
             }
         }
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
-        return true;
+        true
     }
 
     fn set_new_tetromino(&mut self) -> Result<(), ()>{
@@ -417,10 +416,10 @@ impl Game {
 
         // Game over if newly placed block overlaps with board
         match self.check_move(&self.current_tetromino, &(0, 0)) {
-            Ok(_) => { return Ok(()); },
+            Ok(_) => { Ok(())},
             Err(MoveNotAllowedError::OverlapsWithOccupied) => {
                 self.emitter.emit_string("game_over", "GAME OVER".to_string());
-                return Err(());
+                Err(())
             }
             // Other err is not expected to occur.
             Err(_) => panic!("Unexpected error encountered when creating next tetromino.")
@@ -437,7 +436,7 @@ impl Game {
     }
 
     pub fn get_tick_rate(&self) -> f64 {
-        return self.tick_rate;
+        self.tick_rate
     }
 }
 
@@ -451,14 +450,14 @@ pub struct GameRunner {
 
 impl GameRunner {
     pub fn new(game: Game) -> Self {
-        return GameRunner{
+        GameRunner{
             game: Arc::new(Mutex::new(game)),
             running: Arc::new(atomic::AtomicBool::new(false))
-        };
+        }
     }
 
     pub fn get_running(&self) -> bool {
-        return self.running.load(atomic::Ordering::SeqCst);
+        self.running.load(atomic::Ordering::SeqCst)
     }
 
     pub fn run(&self) {
@@ -483,7 +482,7 @@ impl GameRunner {
                 {
                     let mut game = self_clone.game.lock().unwrap();
                     let success = game.tick();
-                    if success != true {
+                    if !success {
                         // Game over, stop running and end loop
                         self_clone.running.store(false, atomic::Ordering::SeqCst);
                         break

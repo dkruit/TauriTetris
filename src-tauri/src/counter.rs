@@ -12,7 +12,7 @@ pub struct Counter {
 
 impl Counter {
     pub fn new(count_rate: f64, emitter: Emitter) -> Self {
-        return Counter { value: 0, count_rate, emitter };
+        Counter { value: 0, count_rate, emitter }
     }
 
     pub fn increment(&mut self) {
@@ -26,7 +26,7 @@ impl Counter {
     }
 
     pub fn get_count_rate(&self) -> f64 {
-        return self.count_rate;
+        self.count_rate
     }
 }
 
@@ -40,10 +40,10 @@ pub struct CounterRunner {
 
 impl CounterRunner {
     pub fn new(counter: Counter) -> Self {
-        return CounterRunner{
+        CounterRunner{
             counter: Arc::new(Mutex::new(counter)),
             running: Arc::new(atomic::AtomicBool::new(false))
-        };
+        }
     }
 
     pub fn run(&self) {

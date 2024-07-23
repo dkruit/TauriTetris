@@ -15,17 +15,16 @@ fn make_menu() -> Menu {
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let close = CustomMenuItem::new("close".to_string(), "Close");
     let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
-    let menu = Menu::new()
+    Menu::new()
         .add_native_item(MenuItem::Copy)
         .add_item(CustomMenuItem::new("hide", "Hide"))
-        .add_submenu(submenu);
-    return menu;
+        .add_submenu(submenu)
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
-    return format!("Hello, {}! You've been greeted from Rust!", name);
+    format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
 #[tauri::command]
@@ -54,7 +53,7 @@ fn reset_counter(counter_runner: State<CounterRunner>) {
 
 #[tauri::command]
 fn get_board_dimensions() -> (i32, i32) {
-    return (BOARD_ROWS as i32, BOARD_COLS as i32);
+    (BOARD_ROWS as i32, BOARD_COLS as i32)
 }
 
 #[tauri::command]
@@ -78,7 +77,7 @@ fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
 
     let mut game = game_runner.game.lock().unwrap();
     let success = game.proces_arrow_key(key);
-    return success;
+    success
 }
 
 #[tauri::command]
@@ -91,7 +90,7 @@ fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
 
     let mut game = game_runner.game.lock().unwrap();
     let success = game.process_rotation(direction);
-    return success
+    success
 }
 
 fn main() {
@@ -109,7 +108,7 @@ fn main() {
             let game_runner = GameRunner::new(Game::new(emitter));
             app.manage(game_runner);
 
-            return Ok(());
+            Ok(())
         })
         .menu(make_menu())
         .invoke_handler(tauri::generate_handler![

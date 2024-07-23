@@ -219,6 +219,7 @@ pub struct Game {
 
     level: i32,
     tick_rate: f64, // tick_rate in ticks per second
+    score: i32,
 
     emitter: Emitter
 }
@@ -232,6 +233,7 @@ impl Game {
             tetromino_shape_generator: TetrominoShapeGenerator::new(),
             level: 1,
             tick_rate: 1., // Dummy value
+            score: 0,
             emitter,
         };
         game.set_tick_rate(); // Initialize tick rate
@@ -321,7 +323,7 @@ impl Game {
     }
 
     fn clear_full_rows(&mut self) {
-        let mut n_cleared = 0;
+        let mut n_cleared: i32 = 0;
 
         for i in (0..BOARD_ROWS).rev() {
             // While loop because if the row is full the other rows are moved down.
@@ -339,16 +341,17 @@ impl Game {
         }
 
         // Make the top rows clear
-        for i in 0..n_cleared {
+        for i in 0..n_cleared as usize {
             for j in 0..BOARD_COLS {
                 self.board[i][j] = '_';
             }
         }
 
-        // Update board if rows have been cleared
+        // Update board and score if rows have been cleared
         if n_cleared > 0 {
             self.emitter.emit_board("board", &self.board);
             println!("Cleared {} rows", n_cleared);
+            self.update_score(n_cleared);
         }
     }
 
@@ -408,6 +411,21 @@ impl Game {
         self.emitter.emit_board("board", &self.board);
     }
 
+    /// Update the score based on the number of cleared rows.
+    fn update_score(&mut self, n_lines_cleared: i32) {
+        let base_score = match n_lines_cleared {
+            0 => 0,
+            1 => 100,
+            2 => 300,
+            3 => 500,
+            4 => 800,
+            _ => 0 // This should not occur
+        };
+        self.score += base_score * self.level;
+        println!("Updated score to {}", self.score);
+        self.emitter.emit_number("score", self.score);
+    }
+
     /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
     /// the tick fails because the player is game-over.
     pub fn tick(&mut self) -> bool {
@@ -449,8 +467,10 @@ impl Game {
         self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
         self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
         self.level = 1;
+        self.score = 0;
         self.set_tick_rate();
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
+        self.emitter.emit_number("score", self.score);
         self.emitter.emit_board("board", &self.board);
     }
 

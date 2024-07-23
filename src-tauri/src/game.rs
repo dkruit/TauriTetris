@@ -234,13 +234,11 @@ impl Game {
             }
         };
 
-        let success;
-
         match self.check_move(&self.current_tetromino, &step) {
             Ok(_) => {
                 self.current_tetromino.move_pos(step);
                 self.emitter.emit_tetromino("tick", &self.current_tetromino);
-                success = true;
+                true
             },
             Err(_) => {
                 // If arrow down failed, the tetromino can not move futher down, and the next
@@ -252,11 +250,9 @@ impl Game {
                         Err(_) => {}
                     }
                 }
-                success = false;
+                false
             }
         }
-
-        return success;
     }
 
     pub fn process_rotation(&mut self, direction: &str) -> bool {

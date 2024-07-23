@@ -1,10 +1,27 @@
 <template>
 
-  <div>
-    <h3>Game</h3>
-    <button v-on:click="startGame()">Start Game</button>
-    <button v-on:click="stopGame()">Stop Game</button>
-    <span>Score: {{ score }}</span>
+  <div class="flex-container">
+    <div class="game-menu">
+      <div>
+        <h3>Game</h3>
+        <button v-on:click="startGame()">Start Game</button>
+        <button v-on:click="stopGame()">Stop Game</button>
+        <span>Score: {{ score }}</span>
+      </div>
+
+    </div>
+
+    <div class="game-board">
+        <div>
+          <h2 class="gameover"> {{ gameOver }} </h2>
+
+          <div class="boardrow" v-for="row of gameBoard.board">
+            <p class="square" v-for="val of row"
+               :style="{backgroundColor: color_from_value(val), height: squareSize, width: squareSize}"></p>
+          </div>
+        </div>
+    </div>
+
   </div>
 
   <div>
@@ -115,6 +132,25 @@ async function stopGame() {
 </script>
 
 <style scoped>
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.game-menu {
+  width: 30%;
+  max-width: 300px;
+  float: right;
+}
+
+.game-board {
+  width: 50%;
+  max-width: 65vh;
+  position: relative;
+  float: left;
+}
+
 .boardrow {
   margin: 0;
   display: flex;

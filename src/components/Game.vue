@@ -96,6 +96,10 @@ document.addEventListener('keydown', (event: KeyboardEvent) => {
   if (event.key === 'X' || event.key === 'x') {
     rotate("clockwise");
   }
+  if (event.key === 'Spacebar' || event.key === ' ') {
+    event.preventDefault();
+    invoke("process_spacebar");
+  }
 });
 
 async function arrow_click(key: string) {

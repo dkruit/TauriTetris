@@ -275,6 +275,20 @@ impl Game {
         }
     }
 
+    pub fn process_hard_drop(&mut self) {
+        let step = (1, 0);
+        let mut n = 0;
+        while let Ok(_) = self.check_move(&self.current_tetromino, &step) {
+            self.current_tetromino.move_pos(step);
+            n += 1;
+        }
+        println!("HARD DROP: {} lines", n);
+        self.add_current_tetromino_to_board();
+        if let Ok(_) = self.set_new_tetromino() {
+            self.emitter.emit_tetromino("tick", &self.current_tetromino);
+        }
+    }
+
     pub fn process_rotation(&mut self, direction: &str) -> bool {
         println!("Rotation {}", direction);
 

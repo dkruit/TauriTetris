@@ -24,15 +24,6 @@
 
   </div>
 
-  <div>
-    <h2 class="gameover"> {{ gameOver }} </h2>
-
-    <div class="boardrow" v-for="row of gameBoard.board">
-      <p class="square" v-for="val of row"
-         :style="{backgroundColor: color_from_value(val), height: squareSize, width: squareSize}"></p>
-    </div>
-  </div>
-
 
 </template>
 
@@ -68,7 +59,7 @@ function color_from_value(value: string): string {
 const board_shape = await invoke("get_board_dimensions")
 const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
 const gameOver = ref("")
-const squareSize = ref(`${75/board_shape[0]}vh`)
+const squareSize = ref(`${90/board_shape[0]}vh`)
 
 const score = ref(0)
 
@@ -164,11 +155,17 @@ async function stopGame() {
 
 .gameover {
   color: red;
+  background-color: #2f2f2f;
+  border-radius: 8px;
+  padding: 5px 10px;
   position: absolute;
-  margin-left: auto;
-  margin-right: auto;
-  left: 0;
-  right: 0;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
   text-align: center;
+}
+
+.gameover:empty {
+    display: none;
 }
 </style>

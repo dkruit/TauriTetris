@@ -1,7 +1,7 @@
 <template>
-  <h3>Game</h3>
 
   <div>
+    <h3>Game</h3>
     <button v-on:click="startGame()">Start Game</button>
     <button v-on:click="stopGame()">Stop Game</button>
   </div>
@@ -11,7 +11,7 @@
 
     <div class="boardrow" v-for="row of gameBoard.board">
       <p class="square" v-for="val of row"
-         :style="{backgroundColor: color_from_value(val)}"></p>
+         :style="{backgroundColor: color_from_value(val), height: squareSize, width: squareSize}"></p>
     </div>
   </div>
 
@@ -50,6 +50,7 @@ function color_from_value(value: string): string {
 const board_shape = await invoke("get_board_dimensions")
 const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
 const gameOver = ref("")
+const squareSize = ref(`${75/board_shape[0]}vh`)
 
 // Listen for game updates
 listen("tick", (event) => {
@@ -115,8 +116,6 @@ async function stopGame() {
 
 .square {
   margin: 1px;
-  width: 40px;
-  height: 40px;
 }
 
 .gameover {

@@ -25,10 +25,6 @@ impl Counter {
         self.emitter.emit_number("counter_updated", self.value);
     }
 
-    pub fn get_value(&self) -> i32 {
-        return self.value;
-    }
-
     pub fn get_count_rate(&self) -> f64 {
         return self.count_rate;
     }

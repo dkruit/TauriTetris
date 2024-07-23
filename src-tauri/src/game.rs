@@ -4,7 +4,6 @@ use rand::thread_rng;
 use std::sync::{Arc, Mutex, atomic};
 use std::thread;
 use std::time::Duration;
-use std::time::Instant;
 
 use crate::emitter::Emitter;
 
@@ -142,22 +141,6 @@ impl Tetromino {
         };
         tetromino.set_occupied_positions();
         return tetromino;
-    }
-
-    pub fn empty() -> Self {
-        // Creates a placeholder empty tetromino with an empty shape
-        return Tetromino {
-            pos: (0, 0),
-            shape: TetrominoShape {
-                name:'_',
-                orientation: 0,
-                shape: [
-                    [0,0,0,0],
-                    [0,1,1,0],
-                    [0,0,1,1],
-                    [0,0,0,0]] },
-            occupied_positions: Vec::new()
-        };
     }
 
     pub fn get_shape_name(&self) -> char {
@@ -512,10 +495,6 @@ impl GameRunner {
                 thread::sleep(Duration::from_secs_f64(sleep_time));
             }
         });
-    }
-
-    pub fn pause(&self) {
-        self.running.store(false, atomic::Ordering::SeqCst);
     }
 
     pub fn reset(&self) {

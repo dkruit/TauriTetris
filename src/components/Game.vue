@@ -2,6 +2,12 @@
 
   <div class="flex-container">
     <div class="game-menu">
+
+      <div class="boardrow" v-for="row of nextTetrominoBoard.board">
+        <p class="square" v-for="val of row"
+           :style="{backgroundColor: color_from_value(val), height: squareSize, width: squareSize}"></p>
+      </div>
+
       <div>
         <h3>TauriTetris</h3>
         <button v-on:click="startGame()">Start Game</button>
@@ -59,6 +65,7 @@ function color_from_value(value: string): string {
 // Declare board references
 const board_shape = await invoke("get_board_dimensions")
 const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
+const nextTetrominoBoard = ref(new Board(4, 4))
 const gameOver = ref("")
 const squareSize = ref(`${90/board_shape[0]}vh`)
 
@@ -66,9 +73,16 @@ const score = ref(0)
 const level = ref(0)
 
 // Listen for game updates
-listen("tick", (event) => {
+listen("current_tetromino", (event) => {
   let block = new Block(event.payload.occupied_positions, event.payload.name)
   gameBoard.value.setBlock(block)
+})
+
+// Listen for game updates
+listen("next_tetromino", (event) => {
+  console.log("Reveived next tetromino")
+  let block = new Block(event.payload.occupied_positions, event.payload.name)
+  nextTetrominoBoard.value.setBlock(block)
 })
 
 listen("board", (event) => {
@@ -143,6 +157,7 @@ async function stopGame() {
 .game-menu {
   width: 30%;
   max-width: 300px;
+  padding: 55px;
   float: right;
   color: darkgreen;
   font-weight: bold;

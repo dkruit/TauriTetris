@@ -150,9 +150,9 @@ pub struct Tetromino{
 }
 
 impl Tetromino {
-    pub fn new(shape: TetrominoShape) -> Self {
+    pub fn new(pos: (i32, i32), shape: TetrominoShape) -> Self {
         let mut tetromino = Tetromino {
-            pos: TETROMINO_INITIAL_POS,
+            pos,
             shape,
             occupied_positions: Vec::new()
         };
@@ -215,6 +215,7 @@ enum MoveNotAllowedError {
 pub struct Game {
     board: [[char; BOARD_COLS]; BOARD_ROWS],
     current_tetromino: Tetromino,
+    next_tetromino: Tetromino,
     tetromino_shape_generator: TetrominoShapeGenerator,
 
     level: i32,
@@ -228,10 +229,18 @@ pub struct Game {
 impl Game {
     pub fn new(emitter: Emitter) -> Self {
         let board = [['_'; BOARD_COLS]; BOARD_ROWS];
+        let mut tetromino_shape_generator = TetrominoShapeGenerator::new();
         let mut game =  Game {
             board,
-            current_tetromino: Tetromino::new(TetrominoShapeGenerator::make('T').unwrap()),
-            tetromino_shape_generator: TetrominoShapeGenerator::new(),
+            current_tetromino: Tetromino::new(
+                TETROMINO_INITIAL_POS,
+                tetromino_shape_generator.make_random()
+            ),
+            next_tetromino: Tetromino::new(
+                (0, 0),
+                tetromino_shape_generator.make_random()
+            ),
+            tetromino_shape_generator,
             level: 0,
             total_lines_cleared: 0,
             tick_rate: 1., // Dummy value
@@ -260,7 +269,7 @@ impl Game {
         match self.check_move(&self.current_tetromino, &step) {
             Ok(_) => {
                 self.current_tetromino.move_pos(step);
-                self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
                 true
             },
             Err(_) => {
@@ -268,9 +277,7 @@ impl Game {
                 // tetromino has to be set
                 if key == "ArrowDown" {
                     self.add_current_tetromino_to_board();
-                    if let Ok(_) = self.set_new_tetromino() {
-                        self.emitter.emit_tetromino("tick", &self.current_tetromino)
-                    }
+                    let _ = self.set_new_tetromino();
                 }
                 false
             }
@@ -286,9 +293,7 @@ impl Game {
         }
         println!("HARD DROP: {} lines", n);
         self.add_current_tetromino_to_board();
-        if let Ok(_) = self.set_new_tetromino() {
-            self.emitter.emit_tetromino("tick", &self.current_tetromino);
-        }
+        let _ = self.set_new_tetromino();
     }
 
     pub fn process_rotation(&mut self, direction: &str) -> bool {
@@ -304,7 +309,7 @@ impl Game {
         match result {
             Ok(_) => {
                 self.current_tetromino = tetromino;
-                self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
                 success = true;
             }
 
@@ -315,7 +320,7 @@ impl Game {
                     Ok(()) => {
                         tetromino.move_pos(step);
                         self.current_tetromino = tetromino;
-                        self.emitter.emit_tetromino("tick", &self.current_tetromino);
+                        self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
                         success = true;
                     }
                     Err(_) => { success = false; }
@@ -473,26 +478,37 @@ impl Game {
         match result {
             Ok(_) => {
                 self.current_tetromino.move_pos(step);
+                self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
+                true
             },
             Err(err) => {
                 println!("Can not move tetromino down: {:?}", err);
                 self.add_current_tetromino_to_board();
                 match self.set_new_tetromino() {
-                    Ok(_) => {}
-                    Err(_) => { return false; }
+                    Ok(_) => { true }
+                    Err(_) => { false }
                 }
             }
         }
-        self.emitter.emit_tetromino("tick", &self.current_tetromino);
-        true
     }
 
     fn set_new_tetromino(&mut self) -> Result<(), ()>{
-        self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
+        self.current_tetromino = self.next_tetromino.clone();
+        self.current_tetromino.move_pos(TETROMINO_INITIAL_POS);
 
         // Game over if newly placed block overlaps with board
         match self.check_move(&self.current_tetromino, &(0, 0)) {
-            Ok(_) => { Ok(())},
+            Ok(_) => {
+                self.next_tetromino = Tetromino::new(
+                    (0, 0),
+                    self.tetromino_shape_generator.make_random()
+                );
+
+                self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
+                self.emitter.emit_tetromino("next_tetromino", &self.next_tetromino);
+
+                Ok(())
+            },
             Err(MoveNotAllowedError::OverlapsWithOccupied) => {
                 self.emitter.emit_string("game_over", "GAME OVER".to_string());
                 Err(())
@@ -504,11 +520,21 @@ impl Game {
 
     pub fn reset(&mut self) {
         self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
-        self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
+        self.current_tetromino = Tetromino::new(
+            TETROMINO_INITIAL_POS, self.tetromino_shape_generator.make_random()
+        );
+        self.next_tetromino = Tetromino::new(
+            (0, 0), self.tetromino_shape_generator.make_random()
+        );
         self.level = 0;
         self.score = 0;
         self.set_tick_rate();
-        self.emitter.emit_tetromino("tick", &self.current_tetromino);
+        self.emit_all();
+    }
+
+    pub fn emit_all(&mut self) {
+        self.emitter.emit_tetromino("current_tetromino", &self.current_tetromino);
+        self.emitter.emit_tetromino("next_tetromino", &self.next_tetromino);
         self.emitter.emit_number("score", self.score);
         self.emitter.emit_number("level", self.level);
         self.emitter.emit_board("board", &self.board);
@@ -548,6 +574,12 @@ impl GameRunner {
 
         // Set running flag to true
         self.running.store(true, atomic::Ordering::SeqCst);
+
+        // Emit the current game state to sync the interface
+        {
+            let mut game = self.game.lock().unwrap();
+            game.emit_all();
+        }
 
         // Clone self to move it to the background thread
         let self_clone = self.clone();

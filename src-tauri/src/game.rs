@@ -435,7 +435,7 @@ impl Game {
 
     /// Update the score based on the number of cleared rows.
     fn update_score(&mut self, n_lines_cleared: i32) {
-        let base_score = match n_lines_cleared {
+        let base_points = match n_lines_cleared {
             0 => 0,
             1 => 100,
             2 => 300,
@@ -443,9 +443,11 @@ impl Game {
             4 => 800,
             _ => 0 // This should not occur
         };
-        self.score += base_score * (self.level + 1);
+        let points = base_points * (self.level+1);
+        self.score += points;
         println!("Updated score to {}", self.score);
         self.emitter.emit_number("score", self.score);
+        self.emitter.emit_number("score_increase", points);
     }
 
     fn lines_needed_for_level(&self, level: i32) -> i32 {

@@ -21,6 +21,7 @@
     <div class="game-board">
         <div>
           <h2 class="gameover"> {{ gameOver }} </h2>
+          <h1 class="score-increase"> {{ scoreIncrease }} </h1>
 
           <div class="boardrow" v-for="row of gameBoard.board">
             <p class="square" v-for="val of row"
@@ -70,6 +71,7 @@ const gameOver = ref("")
 const squareSize = ref(`${90/board_shape[0]}vh`)
 
 const score = ref(0)
+const scoreIncrease = ref("")
 const level = ref(0)
 
 // Listen for game updates
@@ -99,6 +101,10 @@ listen("game_over", (event) => {
 listen("score", (event) => {
   console.log("Updated score")
   score.value = event.payload.value
+})
+
+listen("score_increase", (event) => {
+  showScoreIncrease(event.payload.value)
 })
 
 listen("level", (event) => {
@@ -133,6 +139,12 @@ async function rotate(direction: string) {
   console.log(direction)
   let result = await invoke("process_rotation", {"direction": direction});
   console.log(result)
+}
+
+async function showScoreIncrease(value) {
+  scoreIncrease.value = `+${value}`
+  await new Promise(resolve => setTimeout(resolve, 800))
+  scoreIncrease.value = ""
 }
 
 // Commands to start and stop the game
@@ -197,6 +209,17 @@ button:active {
   background-color: #2f2f2f;
   border-radius: 8px;
   padding: 5px 10px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  text-align: center;
+}
+
+.score-increase {
+  color: deeppink;
+  text-shadow: darkblue 3px 3px 2px;
+  font-weight: bolder;
   position: absolute;
   transform: translate(-50%, -50%);
   top: 50%;

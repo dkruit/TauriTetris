@@ -218,6 +218,7 @@ pub struct Game {
     tetromino_shape_generator: TetrominoShapeGenerator,
 
     level: i32,
+    total_lines_cleared: i32,
     tick_rate: f64, // tick_rate in ticks per second
     score: i32,
 
@@ -231,7 +232,8 @@ impl Game {
             board,
             current_tetromino: Tetromino::new(TetrominoShapeGenerator::make('T').unwrap()),
             tetromino_shape_generator: TetrominoShapeGenerator::new(),
-            level: 1,
+            level: 0,
+            total_lines_cleared: 0,
             tick_rate: 1., // Dummy value
             score: 0,
             emitter,
@@ -241,7 +243,7 @@ impl Game {
     }
 
     fn set_tick_rate(&mut self) {
-        self.tick_rate = 1. * (self.level as f64);
+        self.tick_rate = 1.25 * (1. + self.level as f64).sqrt();
     }
 
     pub fn proces_arrow_key(&mut self, key: &str) -> bool {
@@ -366,6 +368,7 @@ impl Game {
             self.emitter.emit_board("board", &self.board);
             println!("Cleared {} rows", n_cleared);
             self.update_score(n_cleared);
+            self.update_level(n_cleared);
         }
     }
 
@@ -435,11 +438,33 @@ impl Game {
             4 => 800,
             _ => 0 // This should not occur
         };
-        self.score += base_score * self.level;
+        self.score += base_score * (self.level + 1);
         println!("Updated score to {}", self.score);
         self.emitter.emit_number("score", self.score);
     }
 
+    fn lines_needed_for_level(&self, level: i32) -> i32 {
+        if level < 1 {
+            10
+        }
+        else {
+            10 * level + self.lines_needed_for_level(level-1)
+        }
+    }
+
+    fn update_level(&mut self, n_lines_cleared: i32) {
+        self.total_lines_cleared += n_lines_cleared;
+        let lines_needed = self.lines_needed_for_level(self.level);
+
+        println!("{} / {} to next level", self.total_lines_cleared, lines_needed);
+
+        if self.total_lines_cleared == lines_needed{
+            println!("Level up!");
+            self.level += 1;
+            self.emitter.emit_number("level", self.level);
+            self.set_tick_rate();
+        }
+    }
     /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
     /// the tick fails because the player is game-over.
     pub fn tick(&mut self) -> bool {
@@ -480,11 +505,12 @@ impl Game {
     pub fn reset(&mut self) {
         self.board = [['_'; BOARD_COLS]; BOARD_ROWS];
         self.current_tetromino = Tetromino::new(self.tetromino_shape_generator.make_random());
-        self.level = 1;
+        self.level = 0;
         self.score = 0;
         self.set_tick_rate();
         self.emitter.emit_tetromino("tick", &self.current_tetromino);
         self.emitter.emit_number("score", self.score);
+        self.emitter.emit_number("level", self.level);
         self.emitter.emit_board("board", &self.board);
     }
 

@@ -5,8 +5,9 @@
       <div>
         <h3>Game</h3>
         <button v-on:click="startGame()">Start Game</button>
-        <button v-on:click="stopGame()">Stop Game</button>
-        <span>Score: {{ score }}</span>
+        <button v-on:click="stopGame()">Reset Game</button>
+        <p>Score: {{ score }}</p>
+        <p>Level: {{ level }}</p>
       </div>
 
     </div>
@@ -62,6 +63,7 @@ const gameOver = ref("")
 const squareSize = ref(`${90/board_shape[0]}vh`)
 
 const score = ref(0)
+const level = ref(0)
 
 // Listen for game updates
 listen("tick", (event) => {
@@ -83,6 +85,11 @@ listen("game_over", (event) => {
 listen("score", (event) => {
   console.log("Updated score")
   score.value = event.payload.value
+})
+
+listen("level", (event) => {
+  console.log("Updated level")
+  level.value = event.payload.value
 })
 
 // Set up responding to key presses

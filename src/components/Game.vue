@@ -3,7 +3,7 @@
   <div class="flex-container">
     <div class="game-menu">
       <div>
-        <h3>Game</h3>
+        <h3>TauriTetris</h3>
         <button v-on:click="startGame()">Start Game</button>
         <button v-on:click="stopGame()">Reset Game</button>
         <p>Score: {{ score }}</p>
@@ -144,7 +144,20 @@ async function stopGame() {
   width: 30%;
   max-width: 300px;
   float: right;
+  color: darkgreen;
+  font-weight: bold;
+  background-color: lightpink;
+  border-radius: 15px;
 }
+
+button {
+  color: deeppink;
+  font-weight: bold;
+  background-color: lightgreen;
+  }
+button:active {
+    background-color: #0f0f0f69;
+  }
 
 .game-board {
   width: 50%;

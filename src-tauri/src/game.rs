@@ -458,7 +458,7 @@ impl Game {
 
         println!("{} / {} to next level", self.total_lines_cleared, lines_needed);
 
-        if self.total_lines_cleared == lines_needed{
+        if self.total_lines_cleared >= lines_needed{
             println!("Level up!");
             self.level += 1;
             self.emitter.emit_number("level", self.level);

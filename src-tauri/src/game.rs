@@ -28,8 +28,9 @@ pub struct Game {
 
     level: i32,
     total_lines_cleared: i32,
-    tick_rate: f64, // tick_rate in ticks per second
     score: i32,
+    wait_ticks_remaining: i32,
+    game_over: bool,
 
     emitter: Emitter
 }
@@ -51,16 +52,25 @@ impl Game {
             tetromino_shape_generator,
             level: 0,
             total_lines_cleared: 0,
-            tick_rate: 1., // Dummy value
             score: 0,
+            wait_ticks_remaining: 0, // Dummy value
+            game_over: false,
             emitter,
         };
-        game.set_tick_rate(); // Initialize tick rate
+        game.reset_wait_ticks();
         game
     }
 
-    fn set_tick_rate(&mut self) {
-        self.tick_rate = 1.25 * (1. + self.level as f64).sqrt();
+    fn reset_wait_ticks(&mut self) {
+        self.wait_ticks_remaining = match self.level {
+            0..=8 => 48 - 5*self.level,
+            9 => 6,
+            10..=12 => 5,
+            13..=15 => 4,
+            16..=18 => 3,
+            19..=28 => 2,
+            _ => 1
+        }
     }
 
     pub fn proces_arrow_key(&mut self, key: &str) -> bool {
@@ -278,12 +288,19 @@ impl Game {
             println!("Level up!");
             self.level += 1;
             self.emitter.emit_number("level", self.level);
-            self.set_tick_rate();
         }
     }
     /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
     /// the tick fails because the player is game-over.
     pub fn tick(&mut self) -> bool {
+        if self.wait_ticks_remaining > 0 {
+            // Only decrease counter if this tick does not forward the game
+            self.wait_ticks_remaining -= 1;
+            return true;
+        }
+
+        self.reset_wait_ticks();
+
         let step = (1, 0);
         let result = self.check_move(&self.current_tetromino, &step);
         match result {
@@ -321,6 +338,7 @@ impl Game {
                 Ok(())
             },
             Err(MoveNotAllowedError::OverlapsWithOccupied) => {
+                self.game_over = true;
                 self.emitter.emit_string("game_over", "GAME OVER".to_string());
                 Err(())
             }
@@ -339,7 +357,9 @@ impl Game {
         );
         self.level = 0;
         self.score = 0;
-        self.set_tick_rate();
+        self.total_lines_cleared = 0;
+        self.game_over = false;
+        self.reset_wait_ticks();
         self.emit_all();
     }
 
@@ -350,10 +370,6 @@ impl Game {
         self.emitter.emit_number("level", self.level);
         self.emitter.emit_board("board", &self.board);
     }
-
-    pub fn get_tick_rate(&self) -> f64 {
-        self.tick_rate
-    }
 }
 
 // Declare a shared game struct to use the state of the game
@@ -361,14 +377,16 @@ impl Game {
 #[derive(Clone)]
 pub struct GameRunner {
     pub game: Arc<Mutex<Game>>,
-    running: Arc<atomic::AtomicBool>
+    running: Arc<atomic::AtomicBool>,
+    tick_rate: f64,
 }
 
 impl GameRunner {
     pub fn new(game: Game) -> Self {
         GameRunner{
             game: Arc::new(Mutex::new(game)),
-            running: Arc::new(atomic::AtomicBool::new(false))
+            running: Arc::new(atomic::AtomicBool::new(false)),
+            tick_rate: 60.0,
         }
     }
 
@@ -383,22 +401,24 @@ impl GameRunner {
             return;
         }
 
-        // Set running flag to true
-        self.running.store(true, atomic::Ordering::SeqCst);
-
-        // Emit the current game state to sync the interface
+        // Early return if the game-state is game-over. Game should be reset before running
+        // Otherwise emit the current game state to sync the interface
         {
             let mut game = self.game.lock().unwrap();
-            game.emit_all();
+            match game.game_over {
+                true => { return; }
+                false => { game.emit_all(); }
+            }
         }
+
+        // Set running flag to true
+        self.running.store(true, atomic::Ordering::SeqCst);
 
         // Clone self to move it to the background thread
         let self_clone = self.clone();
 
         // Spawn a thread to increment the game at set intervals
         thread::spawn(move || {
-            let mut sleep_time;
-
             // Continue as long as running is true
             while self_clone.running.load(atomic::Ordering::SeqCst) {
                 {
@@ -409,9 +429,8 @@ impl GameRunner {
                         self_clone.running.store(false, atomic::Ordering::SeqCst);
                         break
                     }
-                    sleep_time = 1. / game.get_tick_rate();
                 }
-                thread::sleep(Duration::from_secs_f64(sleep_time));
+                thread::sleep(Duration::from_secs_f64(1. / self_clone.tick_rate));
             }
         });
     }

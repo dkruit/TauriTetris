@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{State, Manager};
-use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
 mod counter;
 mod emitter;
@@ -11,16 +10,6 @@ mod game;
 use counter::{Counter, CounterRunner};
 use game::{Game, GameRunner, BOARD_ROWS, BOARD_COLS};
 use emitter::Emitter;
-
-fn make_menu() -> Menu {
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let close = CustomMenuItem::new("close".to_string(), "Close");
-    let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
-    Menu::new()
-        .add_native_item(MenuItem::Copy)
-        .add_item(CustomMenuItem::new("hide", "Hide"))
-        .add_submenu(submenu)
-}
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -104,7 +93,6 @@ fn main() {
 
             Ok(())
         })
-        .menu(make_menu())
         .invoke_handler(tauri::generate_handler![
             greet,
             start_counter,

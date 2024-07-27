@@ -1,6 +1,9 @@
 <template>
 
   <div class="flex-container">
+
+    <HelpModal v-model:visible="showHelp"></HelpModal>
+
     <div class="game-menu">
 
       <div class="boardrow" v-for="row of nextTetrominoBoard.board">
@@ -12,6 +15,8 @@
         <h2>TauriTetris</h2>
         <button v-on:click="startGame()">Start Game</button>
         <button v-on:click="stopGame()">Reset Game</button>
+        <button v-on:click="showHelp = true">Help</button>
+
         <p>Score: {{ score }}</p>
         <p>Level: {{ level }}</p>
       </div>
@@ -44,6 +49,7 @@ import {ref} from "vue"
 import { Board, Tetromino } from "../game"
 import {listen} from "@tauri-apps/api/event";
 import {invoke} from "@tauri-apps/api/tauri";
+import HelpModal from "./HelpModal.vue";
 
 function color_from_value(value: string): string {
   switch (value) {
@@ -78,6 +84,8 @@ const score = ref(0)
 const scoreIncrease = ref("")
 const level = ref(0)
 const highScores = ref([])
+
+const showHelp = ref(false)
 
 // Listen for game updates
 listen("current_tetromino", (event) => {

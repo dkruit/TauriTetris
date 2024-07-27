@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import {ref} from "vue"
-import { Board, Block } from "../game"
+import { Board, Tetromino } from "../game"
 import {listen} from "@tauri-apps/api/event";
 import {invoke} from "@tauri-apps/api/tauri";
 
@@ -81,15 +81,15 @@ const highScores = ref([])
 
 // Listen for game updates
 listen("current_tetromino", (event) => {
-  let block = new Block(event.payload.occupied_positions, event.payload.name)
-  gameBoard.value.setBlock(block)
+  let tetromino = new Tetromino(event.payload.occupied_positions, event.payload.name)
+  gameBoard.value.setTetromino(tetromino)
 })
 
 // Listen for game updates
 listen("next_tetromino", (event) => {
   console.log("Reveived next tetromino")
-  let block = new Block(event.payload.occupied_positions, event.payload.name)
-  nextTetrominoBoard.value.setBlock(block)
+  let tetromino = new Tetromino(event.payload.occupied_positions, event.payload.name)
+  nextTetrominoBoard.value.setTetromino(tetromino)
 })
 
 listen("board", (event) => {

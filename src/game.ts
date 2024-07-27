@@ -1,4 +1,4 @@
-export class Block {
+export class Tetromino {
   public positions: [];
   public colorCode: string;
 
@@ -11,16 +11,16 @@ export class Block {
 export class Board {
   readonly n_rows: number;
   readonly n_cols: number;
-  private board_without_block: [];
-  private block: Block;
+  private board_without_tetromino: [];
+  private tetromino: Tetromino;
   public board: [];
 
     constructor(n_rows, n_columns) {
       this.n_rows = n_rows;
       this.n_cols = n_columns;
-      this.board_without_block = this.makeEmptyBoard()
-      this.block = new Block([], "_")
-      this.board = this.copyBoard(this.board_without_block)
+      this.board_without_tetromino = this.makeEmptyBoard()
+      this.tetromino = new Tetromino([], "_")
+      this.board = this.copyBoard(this.board_without_tetromino)
     }
 
     makeEmptyBoard(){
@@ -36,7 +36,7 @@ export class Board {
     }
 
     setBoard(board) {
-      this.board_without_block = board
+      this.board_without_tetromino = board
       this.drawBoard()
     }
 
@@ -44,15 +44,15 @@ export class Board {
       return board.map(row => row.slice());
     }
 
-    public setBlock(block: Block) {
-      this.block = block
+    public setTetromino(tetromino: Tetromino) {
+      this.tetromino = tetromino
       this.drawBoard()
     }
 
     private drawBoard() {
-      let board = this.copyBoard(this.board_without_block)
-      for (let pos of this.block.positions) {
-        board[pos[0]][pos[1]] = this.block.colorCode
+      let board = this.copyBoard(this.board_without_tetromino)
+      for (let pos of this.tetromino.positions) {
+        board[pos[0]][pos[1]] = this.tetromino.colorCode
       }
       this.board = board
     }

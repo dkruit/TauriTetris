@@ -9,13 +9,17 @@
       </div>
 
       <div>
-        <h3>TauriTetris</h3>
+        <h2>TauriTetris</h2>
         <button v-on:click="startGame()">Start Game</button>
         <button v-on:click="stopGame()">Reset Game</button>
         <p>Score: {{ score }}</p>
         <p>Level: {{ level }}</p>
       </div>
 
+      <div class="highscores">
+        <h3>HIGHSCORES</h3>
+        <p v-for="(score, pos) of highScores"> {{ pos+1 }}: {{ score }}</p>
+      </div>
     </div>
 
     <div class="game-board">
@@ -73,6 +77,7 @@ const squareSize = ref(`${90/board_shape[0]}vh`)
 const score = ref(0)
 const scoreIncrease = ref("")
 const level = ref(0)
+const highScores = ref([])
 
 // Listen for game updates
 listen("current_tetromino", (event) => {
@@ -96,6 +101,7 @@ listen("board", (event) => {
 listen("game_over", (event) => {
   console.log("GAME OVER")
   gameOver.value = "GAME OVER"
+  updateHigScores(score.value)
 })
 
 listen("score", (event) => {
@@ -147,6 +153,16 @@ async function showScoreIncrease(value) {
   scoreIncrease.value = ""
 }
 
+async function updateHigScores(new_score) {
+  if (highScores.value.length < 3) {
+    highScores.value.push(new_score)
+  }
+  else if (new_score > highScores.value[2]) {
+    highScores.value[2] = (new_score)
+  }
+  highScores.value.sort()
+}
+
 // Commands to start and stop the game
 async function startGame() {
   await invoke("start_game")
@@ -175,6 +191,17 @@ async function stopGame() {
   font-weight: bold;
   background-color: lightpink;
   border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.highscores {
+  flex-grow: 1;
+  margin-top: 5vh;
+  padding-top: 10px;
+  border-radius: 10pt;
+  color: deeppink;
+  background-color: lightgreen;
 }
 
 button {

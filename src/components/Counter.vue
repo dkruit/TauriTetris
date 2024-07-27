@@ -15,7 +15,7 @@ import { listen } from '@tauri-apps/api/event'
 
 const counter_value = ref(0)
 
-listen("counter_updated", (event) => {
+listen<{ value: number }>("counter_updated", (event) => {
   counter_value.value = event.payload.value
 })
 

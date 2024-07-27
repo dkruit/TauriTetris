@@ -1,8 +1,8 @@
 export class Tetromino {
-  public positions: [];
+  public positions: [number, number][];
   public colorCode: string;
 
-  constructor(positions, colorCode) {
+  constructor(positions: [number, number][], colorCode: string) {
     this.positions = positions;
     this.colorCode = colorCode;
   }
@@ -11,11 +11,11 @@ export class Tetromino {
 export class Board {
   readonly n_rows: number;
   readonly n_cols: number;
-  private board_without_tetromino: [];
+  private board_without_tetromino: string[][];
   private tetromino: Tetromino;
-  public board: [];
+  public board: string[][];
 
-    constructor(n_rows, n_columns) {
+    constructor(n_rows: number, n_columns: number) {
       this.n_rows = n_rows;
       this.n_cols = n_columns;
       this.board_without_tetromino = this.makeEmptyBoard()
@@ -23,7 +23,7 @@ export class Board {
       this.board = this.copyBoard(this.board_without_tetromino)
     }
 
-    makeEmptyBoard(){
+    makeEmptyBoard(): string[][]{
       let board = []
       for (let i = 0; i < this.n_rows; i++) {
         const row = [];
@@ -35,12 +35,12 @@ export class Board {
       return board
     }
 
-    setBoard(board) {
+    setBoard(board: string[][]) {
       this.board_without_tetromino = board
       this.drawBoard()
     }
 
-    private copyBoard(board) {
+    private copyBoard(board: string[][]) {
       return board.map(row => row.slice());
     }
 

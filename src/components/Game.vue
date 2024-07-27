@@ -52,76 +52,89 @@ import {invoke} from "@tauri-apps/api/tauri";
 import HelpModal from "./HelpModal.vue";
 
 function color_from_value(value: string): string {
+  let color: string = ""
   switch (value) {
     case "_":
-      return "silver"
+      color = "silver";
+      break;
     case "I":
-      return "aqua"
+      color =  "aqua";
+      break;
     case "J":
-      return "blue"
+      color =  "blue";
+      break;
     case "L":
-      return "darkorange"
+      color =  "darkorange";
+      break;
     case "O":
-      return "gold"
+      color =  "gold";
+      break;
     case "S":
-      return "green"
+      color =  "green";
+      break;
     case "T":
-      return "darkviolet"
+      color =  "darkviolet";
+      break;
     case "Z":
-      return "firebrick"
-
+      color =  "firebrick";
+      break;
   }
+  return color
 }
 
 // Declare board references
-const board_shape = await invoke("get_board_dimensions")
-const gameBoard = ref(new Board(board_shape[0], board_shape[1]))
-const nextTetrominoBoard = ref(new Board(4, 4))
-const gameOver = ref("")
-const squareSize = ref(`${90/board_shape[0]}vh`)
+const board_shape: [number, number] = await invoke("get_board_dimensions")
+const gameBoard = ref<Board>(new Board(board_shape[0], board_shape[1]))
+const nextTetrominoBoard = ref<Board>(new Board(4, 4))
+const gameOver = ref<string>("")
+const squareSize = ref<string>(`${90/board_shape[0]}vh`)
 
-const score = ref(0)
-const scoreIncrease = ref("")
-const level = ref(0)
-const highScores = ref([])
+const score = ref<number>(0)
+const scoreIncrease = ref<string>("")
+const level = ref<number>(0)
+const highScores = ref<number[]>([])
 
-const showHelp = ref(false)
+const showHelp = ref<boolean>(false)
 
+interface TetrominoPayload {
+  occupied_positions: [number, number][],
+  name: string
+}
 // Listen for game updates
-listen("current_tetromino", (event) => {
+listen<TetrominoPayload>("current_tetromino", (event) => {
   let tetromino = new Tetromino(event.payload.occupied_positions, event.payload.name)
   gameBoard.value.setTetromino(tetromino)
 })
 
 // Listen for game updates
-listen("next_tetromino", (event) => {
+listen<TetrominoPayload>("next_tetromino", (event) => {
   console.log("Reveived next tetromino")
   let tetromino = new Tetromino(event.payload.occupied_positions, event.payload.name)
   nextTetrominoBoard.value.setTetromino(tetromino)
 })
 
-listen("board", (event) => {
+listen<{ board: string[][] }>("board", (event) => {
   console.log("Received board update.")
   gameBoard.value.setBoard(event.payload.board)
 
 })
 
-listen("game_over", (event) => {
+listen("game_over", () => {
   console.log("GAME OVER")
   gameOver.value = "GAME OVER"
   updateHigScores(score.value)
 })
 
-listen("score", (event) => {
+listen<{ value: number }>("score", (event) => {
   console.log("Updated score")
   score.value = event.payload.value
 })
 
-listen("score_increase", (event) => {
+listen<{ value: number }>("score_increase", (event) => {
   showScoreIncrease(event.payload.value)
 })
 
-listen("level", (event) => {
+listen<{ value: number }>("level", (event) => {
   console.log("Updated level")
   level.value = event.payload.value
 })
@@ -155,13 +168,13 @@ async function process_command(command: string) {
   console.log(result)
 }
 
-async function showScoreIncrease(value) {
+async function showScoreIncrease(value: number) {
   scoreIncrease.value = `+${value}`
   await new Promise(resolve => setTimeout(resolve, 800))
   scoreIncrease.value = ""
 }
 
-async function updateHigScores(new_score) {
+async function updateHigScores(new_score: number) {
   if (highScores.value.length < 3) {
     highScores.value.push(new_score)
   }

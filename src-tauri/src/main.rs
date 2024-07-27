@@ -70,15 +70,17 @@ fn reset_game(game_runner: State<GameRunner>) {
 
 #[tauri::command]
 fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
-    // Move the tetromino left, right or down. Returns success if the move can be made, fail if
+    // Move the tetromino left, right or down. Returns true if the move can be made, false if
     // the move can not be made.
 
     // Early return if game is not running
     if !game_runner.get_running() { return false; }
 
     let mut game = game_runner.game.lock().unwrap();
-    let success = game.proces_arrow_key(key);
-    success
+    match game.get_game_over() {
+        true => { false },
+        false => { game.proces_arrow_key(key) }
+    }
 }
 
 #[tauri::command]
@@ -89,8 +91,13 @@ fn process_spacebar(game_runner: State<GameRunner>) -> bool {
     if !game_runner.get_running() { return false; }
 
     let mut game = game_runner.game.lock().unwrap();
-    game.process_hard_drop();
-    true
+    match game.get_game_over() {
+        true => { false },
+        false => {
+            game.process_hard_drop();
+            true
+        }
+    }
 }
 
 #[tauri::command]
@@ -102,8 +109,10 @@ fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
     if !game_runner.get_running() { return false; }
 
     let mut game = game_runner.game.lock().unwrap();
-    let success = game.process_rotation(direction);
-    success
+    match game.get_game_over() {
+        true => { false },
+        false => { game.process_rotation(direction) }
+    }
 }
 
 fn main() {

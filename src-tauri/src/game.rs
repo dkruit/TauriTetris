@@ -61,6 +61,10 @@ impl Game {
         game
     }
 
+    pub fn get_game_over(&self) -> bool {
+        self.game_over
+    }
+
     fn reset_wait_ticks(&mut self) {
         self.wait_ticks_remaining = match self.level {
             0..=8 => 48 - 5*self.level,
@@ -293,6 +297,11 @@ impl Game {
     /// Forwards the game a single tick. Returns true if the tick succeeded. Returns false if
     /// the tick fails because the player is game-over.
     pub fn tick(&mut self) -> bool {
+        if self.game_over {
+            // Do not forward the game a tick if the game is over
+            return false;
+        }
+
         if self.wait_ticks_remaining > 0 {
             // Only decrease counter if this tick does not forward the game
             self.wait_ticks_remaining -= 1;

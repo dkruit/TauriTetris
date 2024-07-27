@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Manager};
 
-use crate::game::Tetromino;
+use crate::tetromino::Tetromino;
 use crate::game::{BOARD_ROWS, BOARD_COLS};
 
 #[derive(Clone, serde::Serialize)]

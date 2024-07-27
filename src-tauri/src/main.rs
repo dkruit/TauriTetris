@@ -6,6 +6,7 @@ use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 
 mod counter;
 mod emitter;
+mod tetromino;
 mod game;
 use counter::{Counter, CounterRunner};
 use game::{Game, GameRunner, BOARD_ROWS, BOARD_COLS};

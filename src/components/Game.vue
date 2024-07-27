@@ -160,7 +160,7 @@ async function updateHigScores(new_score) {
   else if (new_score > highScores.value[2]) {
     highScores.value[2] = (new_score)
   }
-  highScores.value.sort()
+  highScores.value.sort().reverse()
 }
 
 // Commands to start and stop the game

@@ -79,9 +79,9 @@ impl Game {
 
     pub fn proces_arrow_key(&mut self, key: &str) -> bool {
         let step = match key {
-            "ArrowDown" => (1, 0),
-            "ArrowLeft" => (0, -1),
-            "ArrowRight" => (0, 1),
+            "down" => (1, 0),
+            "left" => (0, -1),
+            "right" => (0, 1),
             _ => {
                 println!("Invalid key: {}", key);
                 (0, 0)

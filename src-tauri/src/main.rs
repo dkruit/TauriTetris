@@ -69,49 +69,21 @@ fn reset_game(game_runner: State<GameRunner>) {
 }
 
 #[tauri::command]
-fn process_arrow_key(key: &str, game_runner: State<GameRunner>) -> bool {
-    // Move the tetromino left, right or down. Returns true if the move can be made, false if
-    // the move can not be made.
-
+fn process_command(command: &str, game_runner: State<GameRunner>) -> bool {
     // Early return if game is not running
     if !game_runner.get_running() { return false; }
 
     let mut game = game_runner.game.lock().unwrap();
-    match game.get_game_over() {
-        true => { false },
-        false => { game.proces_arrow_key(key) }
+    // Early return if game is over
+    if game.get_game_over() {
+        return false;
     }
-}
 
-#[tauri::command]
-fn process_spacebar(game_runner: State<GameRunner>) -> bool {
-    // Hard drop on space: Move the tetromino all the way down
-
-    // Early return if game is not running
-    if !game_runner.get_running() { return false; }
-
-    let mut game = game_runner.game.lock().unwrap();
-    match game.get_game_over() {
-        true => { false },
-        false => {
-            game.process_hard_drop();
-            true
-        }
-    }
-}
-
-#[tauri::command]
-fn process_rotation(direction: &str, game_runner: State<GameRunner>) -> bool {
-    // Rotate the tetromino clockwise or counter-clockwise.
-    // Returns success if the move can be made, fail if the move can not be made.
-
-    // Early return if game is not running
-    if !game_runner.get_running() { return false; }
-
-    let mut game = game_runner.game.lock().unwrap();
-    match game.get_game_over() {
-        true => { false },
-        false => { game.process_rotation(direction) }
+    match command {
+        "down" | "left" | "right" => { game.proces_arrow_key(command) },
+        "clockwise" | "counter-clockwise" => { game.process_rotation(command) },
+        "hard-drop" => { game.process_hard_drop(); true }
+        _ => { false }
     }
 }
 
@@ -142,9 +114,7 @@ fn main() {
             get_board_dimensions,
             start_game,
             reset_game,
-            process_arrow_key,
-            process_spacebar,
-            process_rotation,
+            process_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

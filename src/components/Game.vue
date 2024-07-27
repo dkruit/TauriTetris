@@ -120,30 +120,30 @@ listen("level", (event) => {
 
 // Set up responding to key presses
 document.addEventListener('keydown', (event: KeyboardEvent) => {
-  if (event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-    arrow_click(event.key);
+  if (event.key === 'ArrowDown') {
+    process_command("down")
+  }
+  if (event.key === 'ArrowLeft') {
+    process_command("left")
+  }
+  if (event.key === 'ArrowRight') {
+    process_command("right");
   }
   if (event.key === 'Z' || event.key === 'z') {
-    rotate("counter-clockwise");
+    process_command("counter-clockwise");
   }
   if (event.key === 'X' || event.key === 'x') {
-    rotate("clockwise");
+    process_command("clockwise");
   }
   if (event.key === 'Spacebar' || event.key === ' ') {
     event.preventDefault();
-    invoke("process_spacebar");
+    process_command("hard-drop")
   }
 });
 
-async function arrow_click(key: string) {
-  console.log(key)
-  let result = await invoke("process_arrow_key", {"key": key});
-  console.log(result)
-}
-
-async function rotate(direction: string) {
-  console.log(direction)
-  let result = await invoke("process_rotation", {"direction": direction});
+async function process_command(command: string) {
+  console.log(command)
+  let result = await invoke("process_command", {"command": command});
   console.log(result)
 }
 
